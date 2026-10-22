@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { Head } from '@inertiajs/vue3';
-import PlaceholderPattern from '@/components/PlaceholderPattern.vue';
 import { dashboard } from '@/routes';
 
 defineOptions({
@@ -16,32 +15,25 @@ defineOptions({
 </script>
 
 <template>
-    <Head title="Dashboard" />
+    <Head title="Poker Home Game Record Book" />
+    <main class="flex min-w-0 flex-1 flex-col gap-6 p-4 sm:p-6">
+        <header class="space-y-2">
+            <p class="text-sm text-muted-foreground">
+                Poker Home Game Record Book
+            </p>
+            <h1 class="text-2xl font-semibold tracking-tight">
+                Welcome, {{ $page.props.auth.user.name }}
+            </h1>
+            <p class="text-muted-foreground">
+                Keep your home game player and session records in one place.
+            </p>
+        </header>
 
-    <div
-        class="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4"
-    >
-        <div class="grid auto-rows-min gap-4 md:grid-cols-3">
-            <div
-                class="relative aspect-video overflow-hidden rounded-xl border border-sidebar-border/70 dark:border-sidebar-border"
-            >
-                <PlaceholderPattern />
-            </div>
-            <div
-                class="relative aspect-video overflow-hidden rounded-xl border border-sidebar-border/70 dark:border-sidebar-border"
-            >
-                <PlaceholderPattern />
-            </div>
-            <div
-                class="relative aspect-video overflow-hidden rounded-xl border border-sidebar-border/70 dark:border-sidebar-border"
-            >
-                <PlaceholderPattern />
-            </div>
-        </div>
-        <div
-            class="relative min-h-[100vh] flex-1 rounded-xl border border-sidebar-border/70 md:min-h-min dark:border-sidebar-border"
-        >
-            <PlaceholderPattern />
-        </div>
-    </div>
+        <section class="rounded-xl border border-sidebar-border/70 bg-card p-5">
+            <h2 class="font-medium">Getting started</h2>
+            <p class="mt-2 text-sm text-muted-foreground">
+                Player and game records will appear here as you add them.
+            </p>
+        </section>
+    </main>
 </template>
