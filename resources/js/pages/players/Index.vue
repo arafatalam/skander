@@ -1,11 +1,13 @@
 <script setup lang="ts">
-import { Head, Link } from '@inertiajs/vue3';
+import { Head, Link, router } from '@inertiajs/vue3';
 import PlayerController from '@/actions/App/Http/Controllers/PlayerController';
 import Heading from '@/components/Heading.vue';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { ref } from 'vue';
 
-defineProps<{
+const props = defineProps<{
     players: {
         id: number;
         name: string;
@@ -13,7 +15,37 @@ defineProps<{
         email: string | null;
         is_active: boolean;
     }[];
+
+    search: string;
 }>();
+
+const search = ref(props.search);
+
+function submitSearch() {
+    router.get(
+        PlayerController.index.url(),
+        { search: search.value },
+        {
+            preserveState: true,
+            preserveScroll: true,
+            replace: true,
+        },
+    );
+}
+
+function clearSearch() {
+    search.value = '';
+
+    router.get(
+        PlayerController.index.url(),
+        {},
+        {
+            preserveState: true,
+            preserveScroll: true,
+            replace: true,
+        },
+    );
+}
 </script>
 
 <template>
@@ -29,6 +61,30 @@ defineProps<{
                 <Link :href="PlayerController.create()">Add player</Link>
             </Button>
         </div>
+
+        <form
+            class="flex w-full max-w-lg gap-2"
+            role="search"
+            @submit.prevent="submitSearch"
+        >
+            <Input
+                v-model="search"
+                type="search"
+                aria-label="Search players"
+                placeholder="Search by name, phone, or email"
+            />
+            <Button type="submit" variant="outline">Search</Button>
+
+            <Button
+                type="button"
+                variant="outline"
+                :disabled="!search"
+                @click="clearSearch"
+            >
+                Clear
+            </Button>
+        </form>
+
         <section
             class="overflow-hidden rounded-xl border border-sidebar-border/70 bg-card"
         >
@@ -59,6 +115,17 @@ defineProps<{
                                 Inactive
                             </Badge>
                             <Badge v-else variant="secondary">Active</Badge>
+                        </td>
+                    </tr>
+                    <tr v-if="players.length === 0">
+                        <td
+                            colspan="4"
+                            class="px-4 py-8 text-center text-muted-foreground"
+                        >
+                            <span v-if="search"
+                                >No players match "{{ search }}".</span
+                            >
+                            <span v-else>No players have been added yet.</span>
                         </td>
                     </tr>
                 </tbody>

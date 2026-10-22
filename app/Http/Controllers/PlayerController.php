@@ -7,25 +7,41 @@ use App\Models\Player;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
+use Inertia\Response;
 
 class PlayerController extends Controller
 {
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request): Response
     {
+        $search = $request->validate([
+            'search' => ['nullable', 'string', 'max:255'],
+        ])['search'] ?? '';
+
+        // TODO Revisit this following block of code
+        $players = Player::query()
+            ->when($search !== '', function ($query) use ($search) {
+                $query->where(function ($query) use ($search) {
+                    $query->where('name', 'like', "%{$search}%")
+                        ->orWhere('phone', 'like', "%{$search}%")
+                        ->orWhere('email', 'like', "%{$search}%");
+                });
+            })
+            ->orderBy('name')
+            ->get(['id', 'name', 'phone', 'email', 'is_active']);
+
         return Inertia::render('players/Index', [
-            'players' => Player::query()
-                ->orderBy('name')
-                ->get(['id', 'name', 'phone', 'email', 'is_active']),
+            'players' => $players,
+            'search' => $search,
         ]);
     }
 
     /**
      * Show the form for creating a new resource.
      */
-    public function create()
+    public function create(): Response
     {
         return Inertia::render('players/Create');
     }
