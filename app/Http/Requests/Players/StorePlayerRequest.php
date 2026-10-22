@@ -23,9 +23,9 @@ class StorePlayerRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name' => ['required', 'string', 'max:255'],
+            'name' => ['required', 'string', 'min:3', 'max:255'],
             'phone' => ['nullable', 'string', 'max:255'],
-            'email' => ['nullable', 'email', 'max:255'],
+            'email' => ['nullable', 'email', 'max:255', 'unique:players,email'],
         ];
     }
 }

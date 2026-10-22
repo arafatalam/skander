@@ -4,7 +4,9 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\Players\StorePlayerRequest;
 use App\Models\Player;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Inertia\Inertia;
 
 class PlayerController extends Controller
 {
@@ -21,15 +23,22 @@ class PlayerController extends Controller
      */
     public function create()
     {
-        //
+        return Inertia::render('players/Create');
     }
 
     /**
      * Store a newly created resource in storage.
      */
-    public function store(StorePlayerRequest $request)
+    public function store(StorePlayerRequest $request): RedirectResponse
     {
-        //
+        Player::create($request->validated());
+
+        Inertia::flash('toast', [
+            'type' => 'success',
+            'message' => 'Player created successfully.',
+        ]);
+
+        return back();
     }
 
     /**
