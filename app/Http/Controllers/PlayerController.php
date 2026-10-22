@@ -15,7 +15,11 @@ class PlayerController extends Controller
      */
     public function index()
     {
-        //
+        return Inertia::render('players/Index', [
+            'players' => Player::query()
+                ->orderBy('name')
+                ->get(['id', 'name', 'phone', 'email', 'is_active']),
+        ]);
     }
 
     /**

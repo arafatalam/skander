@@ -12,7 +12,7 @@ class PlayerPolicy
      */
     public function viewAny(User $user): bool
     {
-        return false;
+        return $user->role === 'admin';
     }
 
     /**
@@ -20,7 +20,7 @@ class PlayerPolicy
      */
     public function view(User $user, Player $player): bool
     {
-        return false;
+        return $user->role === 'admin';
     }
 
     /**
