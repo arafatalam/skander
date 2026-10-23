@@ -19,24 +19,25 @@ import { Label } from '@/components/ui/label';
 
         <Form
             v-bind="PlayerController.store.form()"
+            novalidate
             resetOnSuccess
             class="max-w-xl space-y-6"
             v-slot="{ errors, processing }"
         >
             <div class="grid gap-2">
                 <Label for="name">Name</Label>
-                <Input id="name" name="name" required maxlength="255" />
+                <Input id="name" name="name" />
                 <InputError :message="errors.name" />
             </div>
             <div class="grid gap-2">
                 <Label for="phone">Phone number</Label>
-                <Input id="phone" name="phone" type="tel" maxlength="255" />
+                <Input id="phone" name="phone" type="tel" />
                 <InputError :message="errors.phone" />
             </div>
 
             <div class="grid gap-2">
                 <Label for="email">Email address</Label>
-                <Input id="email" name="email" maxlength="255" />
+                <Input id="email" name="email" />
                 <InputError :message="errors.email" />
             </div>
 

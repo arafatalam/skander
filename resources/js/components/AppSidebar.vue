@@ -6,13 +6,17 @@ import NavMain from '@/components/NavMain.vue';
 import NavUser from '@/components/NavUser.vue';
 import GameSessionController from '@/actions/App/Http/Controllers/GameSessionController';
 import PlayerController from '@/actions/App/Http/Controllers/PlayerController';
+import GameSettingController from '@/actions/App/Http/Controllers/GameSettingController';
 
 import {
     BookOpen,
+    CalendarDays,
     CalendarPlus,
     FolderGit2,
     LayoutGrid,
     UserPlus,
+    Users,
+    Settings,
 } from '@lucide/vue';
 import {
     Sidebar,
@@ -33,9 +37,24 @@ const mainNavItems: NavItem[] = [
         icon: LayoutGrid,
     },
     {
+        title: 'Games',
+        href: GameSessionController.index(),
+        icon: CalendarDays,
+    },
+    {
         title: 'Create game',
         href: GameSessionController.create(),
         icon: CalendarPlus,
+    },
+    {
+        title: 'Game settings',
+        href: GameSettingController.editStandalone(),
+        icon: Settings,
+    },
+    {
+        title: 'Players',
+        href: PlayerController.index(),
+        icon: Users,
     },
     {
         title: 'Add player',

@@ -1,0 +1,38 @@
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    /**
+     * Run the migrations.
+     */
+    public function up(): void
+    {
+        Schema::create('game_settings', function (Blueprint $table) {
+            $table->id();
+            $table->unsignedInteger('default_min_buy_in');
+            $table->unsignedInteger('default_max_buy_in');
+            $table->timestamps();
+        });
+
+        DB::table('game_settings')->insert([
+            'id' => 1,
+            'default_min_buy_in' => 100,
+            'default_max_buy_in' => 500,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+    }
+
+    /**
+     * Reverse the migrations.
+     */
+    public function down(): void
+    {
+        Schema::dropIfExists('game_settings');
+    }
+};

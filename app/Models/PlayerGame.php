@@ -1,0 +1,44 @@
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+
+class PlayerGame extends Model
+{
+    protected $fillable = [
+        'player_id',
+        'game_session_id',
+        'opening_balance',
+        'created_by',
+    ];
+
+    protected function casts(): array
+    {
+        return [
+            'opening_balance' => 'integer',
+        ];
+    }
+
+    public function player(): BelongsTo
+    {
+        return $this->belongsTo(Player::class);
+    }
+
+    public function gameSession(): BelongsTo
+    {
+        return $this->belongsTo(GameSession::class);
+    }
+
+    public function createdBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'created_by');
+    }
+
+    public function buyIns(): HasMany
+    {
+        return $this->hasMany(BuyIn::class);
+    }
+}

@@ -2,16 +2,27 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
-#[Fillable(['name', 'phone', 'email'])]
 class Player extends Model
 {
+    protected $fillable = [
+        'name',
+        'phone',
+        'email',
+    ];
+
     protected function casts(): array
     {
         return [
             'is_active' => 'boolean',
+            'balance' => 'integer',
         ];
+    }
+
+    public function playerGames(): HasMany
+    {
+        return $this->hasMany(PlayerGame::class);
     }
 }
