@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Actions\Games\CreateGameSession;
 use App\Http\Requests\Games\StoreGameSessionRequest;
 use App\Models\GameSession;
+use App\Models\GameSetting;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
@@ -27,6 +28,8 @@ class GameSessionController extends Controller
                 'game_number',
                 'game_name',
                 'status',
+                'min_buy_in',
+                'max_buy_in',
             ]);
 
         return Inertia::render('games/Index', [
@@ -41,10 +44,15 @@ class GameSessionController extends Controller
     {
         $gameDate = Carbon::today()->toDateString();
         $details = $action->nextGameDetails($gameDate);
+        $settings = GameSetting::query()->findOrFail(1);
 
         return Inertia::render('games/Create', [
             'gameDate' => $gameDate,
             'gameName' => $details['game_name'],
+            'defaultLimits' => [
+                'min_buy_in' => $settings->default_min_buy_in,
+                'max_buy_in' => $settings->default_max_buy_in,
+            ],
         ]);
 
     }
@@ -54,10 +62,18 @@ class GameSessionController extends Controller
      */
     public function store(StoreGameSessionRequest $request, CreateGameSession $action): RedirectResponse
     {
+        $customLimits = $request->boolean('use_custom_limits')
+            ? [
+                'min_buy_in' => (int) $request->validated('min_buy_in'),
+                'max_buy_in' => (int) $request->validated('max_buy_in'),
+            ]
+            : null;
+
         $game = $action->create(
             $request->validated('game_date'),
             $request->user(),
             $request->validated('game_name'),
+            $customLimits,
         );
 
         Inertia::flash('toast', [

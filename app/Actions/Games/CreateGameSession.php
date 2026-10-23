@@ -3,6 +3,7 @@
 namespace App\Actions\Games;
 
 use App\Models\GameSession;
+use App\Models\GameSetting;
 use App\Models\User;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
@@ -34,9 +35,16 @@ class CreateGameSession
         return $details;
     }
 
-    public function create(string $gameDate, User $admin, string $confirmedGameName): GameSession
-    {
-        $game = DB::transaction(function () use ($gameDate, $admin, $confirmedGameName) {
+    /**
+     * @param  array{min_buy_in: int, max_buy_in: int}|null  $customLimits
+     */
+    public function create(
+        string $gameDate,
+        User $admin,
+        string $confirmedGameName,
+        ?array $customLimits = null,
+    ): GameSession {
+        $game = DB::transaction(function () use ($gameDate, $admin, $confirmedGameName, $customLimits) {
             // Make simultaneous requests from the Admin wait their turn.
             User::query()
                 ->whereKey($admin->getKey())
@@ -56,11 +64,27 @@ class CreateGameSession
                 ]);
             }
 
+            if ($customLimits === null) {
+                $settings = GameSetting::query()
+                    ->whereKey(1)
+                    ->sharedLock()
+                    ->firstOrFail();
+
+                $limits = [
+                    'min_buy_in' => $settings->default_min_buy_in,
+                    'max_buy_in' => $settings->default_max_buy_in,
+                ];
+            } else {
+                $limits = $customLimits;
+            }
+
             $gameSession = GameSession::create([
                 'game_date' => $gameDate,
                 'game_number' => $details['game_number'],
                 'game_name' => $details['game_name'],
                 'status' => 'open',
+                'min_buy_in' => $limits['min_buy_in'],
+                'max_buy_in' => $limits['max_buy_in'],
                 'created_by' => $admin->getKey(),
             ]);
 

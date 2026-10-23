@@ -13,6 +13,8 @@ class GameSession extends Model
         'game_number',
         'game_name',
         'status',
+        'min_buy_in',
+        'max_buy_in',
         'created_by',
         'closed_by',
         'closed_at',
@@ -23,6 +25,8 @@ class GameSession extends Model
         return [
             'game_date' => 'date',
             'closed_at' => 'datetime',
+            'min_buy_in' => 'integer',
+            'max_buy_in' => 'integer',
         ];
     }
 

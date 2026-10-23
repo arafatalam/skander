@@ -25,6 +25,31 @@ class StoreGameSessionRequest extends FormRequest
         return [
             'game_date' => ['required', 'date_format:Y-m-d'],
             'game_name' => ['required', 'string', 'max:16'],
+            'use_custom_limits' => ['required', 'boolean'],
+            'min_buy_in' => [
+                'exclude_unless:use_custom_limits,true',
+                'required',
+                'integer',
+                'min:1',
+                'max:2147483647',
+            ],
+            'max_buy_in' => [
+                'exclude_unless:use_custom_limits,true',
+                'required',
+                'integer',
+                'min:1',
+                'max:2147483647',
+                'gte:min_buy_in',
+            ],
+        ];
+    }
+
+    public function messages(): array
+    {
+        return [
+            'min_buy_in.max' => 'Please enter a smaller minimum buy-in.',
+            'max_buy_in.max' => 'Please enter a smaller maximum buy-in.',
+            'max_buy_in.gte' => 'The maximum buy-in must be at least the minimum buy-in.',
         ];
     }
 }

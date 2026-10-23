@@ -12,6 +12,8 @@ defineProps<{
         game_number: number;
         game_name: string;
         status: 'open' | 'closed';
+        min_buy_in: number;
+        max_buy_in: number;
     }[];
 }>();
 </script>
@@ -38,6 +40,12 @@ defineProps<{
                     <tr>
                         <th class="px-4 py-3 font-medium">Game</th>
                         <th class="px-4 py-3 font-medium">Status</th>
+                        <th class="px-4 py-3 text-right font-medium">
+                            Minimum buy-in
+                        </th>
+                        <th class="px-4 py-3 text-right font-medium">
+                            Maximum buy-in
+                        </th>
                     </tr>
                 </thead>
 
@@ -62,11 +70,21 @@ defineProps<{
                                 {{ game.status === 'open' ? 'Open' : 'Closed' }}
                             </Badge>
                         </td>
+                        <td
+                            class="px-4 py-3 text-right whitespace-nowrap tabular-nums"
+                        >
+                            ${{ game.min_buy_in.toLocaleString('en-US') }}
+                        </td>
+                        <td
+                            class="px-4 py-3 text-right whitespace-nowrap tabular-nums"
+                        >
+                            ${{ game.max_buy_in.toLocaleString('en-US') }}
+                        </td>
                     </tr>
 
                     <tr v-if="games.length === 0">
                         <td
-                            colspan="2"
+                            colspan="4"
                             class="px-4 py-8 text-center text-muted-foreground"
                         >
                             No games have been created yet.

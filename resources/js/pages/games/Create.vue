@@ -5,6 +5,9 @@ import GameSessionController from '@/actions/App/Http/Controllers/GameSessionCon
 import Heading from '@/components/Heading.vue';
 import InputError from '@/components/InputError.vue';
 import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import {
     Dialog,
     DialogClose,
@@ -19,9 +22,14 @@ import {
 defineProps<{
     gameDate: string;
     gameName: string;
+    defaultLimits: {
+        min_buy_in: number;
+        max_buy_in: number;
+    };
 }>();
 
 const confirmationOpen = ref(false);
+const useCustomLimits = ref(false);
 </script>
 
 <template>
@@ -38,17 +46,18 @@ const confirmationOpen = ref(false);
                 <Button type="button" class="w-fit"> Create game </Button>
             </DialogTrigger>
 
-            <DialogContent>
+            <DialogContent class="max-h-[90dvh] overflow-y-auto">
                 <DialogHeader>
                     <DialogTitle>Confirm game creation</DialogTitle>
 
                     <DialogDescription>
-                        Create game {{ gameName }}?
+                        Create game {{ gameName }} ?
                     </DialogDescription>
                 </DialogHeader>
 
                 <Form
                     v-bind="GameSessionController.store.form()"
+                    novalidate
                     v-slot="{ errors, processing }"
                     class="space-y-4"
                     @success="confirmationOpen = false"
@@ -56,9 +65,70 @@ const confirmationOpen = ref(false);
                     <input type="hidden" name="game_date" :value="gameDate" />
 
                     <input type="hidden" name="game_name" :value="gameName" />
+                    <input
+                        type="hidden"
+                        name="use_custom_limits"
+                        :value="useCustomLimits ? '1' : '0'"
+                    />
 
                     <InputError :message="errors.game_date" />
                     <InputError :message="errors.game_name" />
+
+                    <div class="rounded-md border p-4 text-sm">
+                        <p class="font-medium">Default buy-in limits</p>
+                        <dl class="mt-2 grid grid-cols-2 gap-2">
+                            <dt>Minimum</dt>
+                            <dd class="text-right">
+                                ${{ defaultLimits.min_buy_in }}
+                            </dd>
+                            <dt>Maximum</dt>
+                            <dd class="text-right">
+                                ${{ defaultLimits.max_buy_in }}
+                            </dd>
+                        </dl>
+                    </div>
+
+                    <div class="space-y-2">
+                        <div class="flex items-center gap-2">
+                            <Checkbox
+                                id="use_custom_limits"
+                                v-model="useCustomLimits"
+                                :disabled="processing"
+                            />
+                            <Label for="use_custom_limits">
+                                Use different buy-in limits
+                            </Label>
+                        </div>
+                        <InputError :message="errors.use_custom_limits" />
+                    </div>
+
+                    <div
+                        v-if="useCustomLimits"
+                        class="grid gap-4 sm:grid-cols-2"
+                    >
+                        <div class="grid gap-2">
+                            <Label for="min_buy_in">Minimum buy-in ($)</Label>
+                            <Input
+                                id="min_buy_in"
+                                name="min_buy_in"
+                                type="number"
+                                :default-value="defaultLimits.min_buy_in"
+                                :disabled="processing"
+                            />
+                            <InputError :message="errors.min_buy_in" />
+                        </div>
+                        <div class="grid gap-2">
+                            <Label for="max_buy_in">Maximum buy-in ($)</Label>
+                            <Input
+                                id="max_buy_in"
+                                name="max_buy_in"
+                                type="number"
+                                :default-value="defaultLimits.max_buy_in"
+                                :disabled="processing"
+                            />
+                            <InputError :message="errors.max_buy_in" />
+                        </div>
+                    </div>
 
                     <DialogFooter class="gap-2">
                         <DialogClose as-child>
