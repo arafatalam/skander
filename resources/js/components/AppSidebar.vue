@@ -1,10 +1,19 @@
 <script setup lang="ts">
 import { Link } from '@inertiajs/vue3';
-import { BookOpen, FolderGit2, LayoutGrid } from '@lucide/vue';
 import AppLogo from '@/components/AppLogo.vue';
 import NavFooter from '@/components/NavFooter.vue';
 import NavMain from '@/components/NavMain.vue';
 import NavUser from '@/components/NavUser.vue';
+import GameSessionController from '@/actions/App/Http/Controllers/GameSessionController';
+import PlayerController from '@/actions/App/Http/Controllers/PlayerController';
+
+import {
+    BookOpen,
+    CalendarPlus,
+    FolderGit2,
+    LayoutGrid,
+    UserPlus,
+} from '@lucide/vue';
 import {
     Sidebar,
     SidebarContent,
@@ -22,6 +31,16 @@ const mainNavItems: NavItem[] = [
         title: 'Dashboard',
         href: dashboard(),
         icon: LayoutGrid,
+    },
+    {
+        title: 'Create game',
+        href: GameSessionController.create(),
+        icon: CalendarPlus,
+    },
+    {
+        title: 'Add player',
+        href: PlayerController.create(),
+        icon: UserPlus,
     },
 ];
 

@@ -1,6 +1,8 @@
 <?php
 
+use App\Http\Controllers\GameSessionController;
 use App\Http\Controllers\PlayerController;
+use App\Models\GameSession;
 use App\Models\Player;
 use Illuminate\Support\Facades\Route;
 
@@ -20,6 +22,14 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('players', [PlayerController::class, 'store'])
         ->name('players.store')
         ->can('create', Player::class);
+
+    Route::get('games/create', [GameSessionController::class, 'create'])
+        ->name('games.create')
+        ->can('create', GameSession::class);
+
+    Route::post('games', [GameSessionController::class, 'store'])
+        ->name('games.store')
+        ->can('create', GameSession::class);
 
 });
 

@@ -24,6 +24,7 @@ class StoreGameSessionRequest extends FormRequest
     {
         return [
             'game_date' => ['required', 'date_format:Y-m-d'],
+            'game_name' => ['required', 'string', 'max:16'],
         ];
     }
 }
