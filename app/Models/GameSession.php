@@ -22,6 +22,12 @@ class GameSession extends Model
         'created_by',
         'closed_by',
         'closed_at',
+        'total_tips',
+        'total_cost',
+        'tips_recorded_by',
+        'tips_recorded_at',
+        'cost_recorded_by',
+        'cost_recorded_at',
     ];
 
     protected function casts(): array
@@ -31,6 +37,10 @@ class GameSession extends Model
             'closed_at' => 'datetime',
             'min_buy_in' => 'integer',
             'max_buy_in' => 'integer',
+            'total_tips' => 'integer',
+            'total_cost' => 'integer',
+            'tips_recorded_at' => 'datetime',
+            'cost_recorded_at' => 'datetime',
         ];
     }
 
@@ -51,10 +61,36 @@ class GameSession extends Model
     }
 
     /**
+     * @return BelongsTo<User, $this>
+     */
+    public function tipsRecordedBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'tips_recorded_by');
+    }
+
+    /**
+     * @return BelongsTo<User, $this>
+     */
+    public function costRecordedBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'cost_recorded_by');
+    }
+
+    /**
      * @return HasMany<PlayerGame, $this>
      */
     public function playerGames(): HasMany
     {
         return $this->hasMany(PlayerGame::class);
+    }
+
+    /**
+     * @return HasMany<GameTotalCorrection, $this>
+     */
+    public function totalCorrections(): HasMany
+    {
+        return $this->hasMany(GameTotalCorrection::class)
+            ->orderBy('corrected_at')
+            ->orderBy('id');
     }
 }

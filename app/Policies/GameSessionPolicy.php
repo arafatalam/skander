@@ -31,6 +31,16 @@ class GameSessionPolicy
         return $user->role === 'admin';
     }
 
+    public function recordTotals(User $user, GameSession $gameSession): bool
+    {
+        return $user->role === 'admin';
+    }
+
+    public function correctTotals(User $user, GameSession $gameSession): bool
+    {
+        return $user->role === 'admin';
+    }
+
     /**
      * Determine whether the user can update the model.
      */
