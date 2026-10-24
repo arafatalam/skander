@@ -19,6 +19,7 @@ import {
     FolderGit2,
     LayoutGrid,
     UserPlus,
+    UserPen,
     Users,
     Settings,
 } from '@lucide/vue';
@@ -79,6 +80,11 @@ const mainNavItems: NavItem[] = [
         title: 'Add player',
         href: PlayerController.create(),
         icon: UserPlus,
+    },
+    {
+        title: 'Edit player profile',
+        href: PlayerController.index(),
+        icon: UserPen,
     },
 ];
 

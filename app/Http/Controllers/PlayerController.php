@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Actions\Players\GetPlayerHistory;
 use App\Http\Requests\Players\StorePlayerRequest;
+use App\Http\Requests\Players\UpdatePlayerRequest;
 use App\Models\Player;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -77,22 +78,27 @@ class PlayerController extends Controller
 
     /**
      * Show the form for editing the specified resource.
-     *
-     * @return void
      */
-    public function edit(Player $player)
+    public function edit(Player $player): Response
     {
-        //
+        return Inertia::render('players/Edit', [
+            'player' => $player->only(['id', 'name', 'phone', 'email']),
+        ]);
     }
 
     /**
      * Update the specified resource in storage.
-     *
-     * @return void
      */
-    public function update(Request $request, Player $player)
+    public function update(UpdatePlayerRequest $request, Player $player): RedirectResponse
     {
-        //
+        $player->update($request->validated());
+
+        Inertia::flash('toast', [
+            'type' => 'success',
+            'message' => 'Player profile updated successfully.',
+        ]);
+
+        return to_route('players.show', $player);
     }
 
     /**

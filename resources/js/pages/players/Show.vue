@@ -86,9 +86,18 @@ function formatPaymentDate(value: string): string {
                 :title="player.name"
                 description="Game activity and later payments."
             />
-            <Button variant="outline" as-child>
-                <Link :href="PlayerController.index()">Back to players</Link>
-            </Button>
+            <div class="flex flex-wrap gap-2">
+                <Button variant="outline" as-child>
+                    <Link :href="PlayerController.index()"
+                        >Back to players</Link
+                    >
+                </Button>
+                <Button as-child>
+                    <Link :href="PlayerController.edit(player.id)"
+                        >Edit player profile</Link
+                    >
+                </Button>
+            </div>
         </div>
 
         <section

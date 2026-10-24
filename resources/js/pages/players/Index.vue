@@ -86,7 +86,7 @@ function clearSearch() {
         </form>
 
         <section
-            class="overflow-hidden rounded-xl border border-sidebar-border/70 bg-card"
+            class="overflow-x-auto rounded-xl border border-sidebar-border/70 bg-card"
         >
             <table class="w-full text-left text-sm">
                 <thead class="border-b bg-muted/50 text-muted-foreground">
@@ -95,6 +95,7 @@ function clearSearch() {
                         <th class="px-4 py-3 font-medium">Phone</th>
                         <th class="px-4 py-3 font-medium">Email</th>
                         <th class="px-4 py-3 font-medium">Status</th>
+                        <th class="px-4 py-3 font-medium">Actions</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -123,10 +124,20 @@ function clearSearch() {
                             </Badge>
                             <Badge v-else variant="secondary">Active</Badge>
                         </td>
+                        <td class="px-4 py-3">
+                            <Button variant="outline" size="sm" as-child>
+                                <Link
+                                    :href="PlayerController.edit(player.id)"
+                                    :aria-label="`Edit ${player.name}`"
+                                >
+                                    Edit player
+                                </Link>
+                            </Button>
+                        </td>
                     </tr>
                     <tr v-if="players.length === 0">
                         <td
-                            colspan="4"
+                            colspan="5"
                             class="px-4 py-8 text-center text-muted-foreground"
                         >
                             <span v-if="search"

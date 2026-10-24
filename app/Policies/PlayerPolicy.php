@@ -36,7 +36,7 @@ class PlayerPolicy
      */
     public function update(User $user, Player $player): bool
     {
-        return false;
+        return $user->role === 'admin';
     }
 
     /**

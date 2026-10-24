@@ -37,6 +37,16 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::post('/', [PlayerController::class, 'store'])
             ->name('players.store')
             ->can('create', Player::class);
+
+        Route::get('{player}/edit', [PlayerController::class, 'edit'])
+            ->name('players.edit')
+            ->whereNumber('player')
+            ->can('update', 'player');
+
+        Route::patch('{player}', [PlayerController::class, 'update'])
+            ->name('players.update')
+            ->whereNumber('player')
+            ->can('update', 'player');
     });
 
     Route::prefix('games')->group(function () {
