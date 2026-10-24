@@ -26,9 +26,24 @@ const props = defineProps<{
         id: number;
         name: string;
     }[];
+    returnLimits: {
+        game_session_id: number;
+        player_id: number;
+        minimum: number;
+        maximum: number;
+    }[];
 }>();
 
 const selectedGameId = ref('');
+const selectedPlayerId = ref('');
+
+const selectedReturnLimits = computed(() => {
+    return props.returnLimits.find(
+        (limits) =>
+            String(limits.game_session_id) === selectedGameId.value &&
+            String(limits.player_id) === selectedPlayerId.value,
+    );
+});
 
 const selectedGame = computed(() => {
     for (const game of props.games) {
@@ -77,11 +92,11 @@ const selectedGame = computed(() => {
                 </Select>
 
                 <p v-if="selectedGame" class="text-sm text-muted-foreground">
-                    Buy-in limits: ${{
+                    Normal buy-in limits: ${{
                         selectedGame.min_buy_in.toLocaleString('en-US')
                     }}
                     to ${{ selectedGame.max_buy_in.toLocaleString('en-US') }}.
-                    These limits apply to cash and credit combined.
+                    Select a player to see their permitted combined amount.
                 </p>
 
                 <InputError :message="errors.game_session_id" />
@@ -90,7 +105,7 @@ const selectedGame = computed(() => {
             <div class="grid gap-2">
                 <Label for="player_id">Player</Label>
 
-                <Select name="player_id">
+                <Select v-model="selectedPlayerId" name="player_id">
                     <SelectTrigger id="player_id" class="w-full">
                         <SelectValue placeholder="Choose a player" />
                     </SelectTrigger>
@@ -107,6 +122,47 @@ const selectedGame = computed(() => {
                 </Select>
 
                 <InputError :message="errors.player_id" />
+            </div>
+
+            <div
+                v-if="selectedGame && selectedPlayerId"
+                class="space-y-1 text-sm text-muted-foreground"
+                aria-live="polite"
+            >
+                <template v-if="selectedReturnLimits">
+                    <p
+                        v-if="
+                            selectedReturnLimits.minimum ===
+                            selectedReturnLimits.maximum
+                        "
+                    >
+                        Returning buy-in: exactly ${{
+                            selectedReturnLimits.minimum.toLocaleString('en-US')
+                        }}
+                        in cash and credit combined.
+                    </p>
+                    <p v-else>
+                        Returning buy-in: ${{
+                            selectedReturnLimits.minimum.toLocaleString('en-US')
+                        }}
+                        to ${{
+                            selectedReturnLimits.maximum.toLocaleString('en-US')
+                        }}
+                        in cash and credit combined.
+                    </p>
+                    <p>
+                        This amount is based on the latest cashout's ending
+                        chips. Cash paid at cashout does not reduce it. Later
+                        top-ups use the normal game limits.
+                    </p>
+                </template>
+                <p v-else>
+                    Permitted buy-in: ${{
+                        selectedGame.min_buy_in.toLocaleString('en-US')
+                    }}
+                    to ${{ selectedGame.max_buy_in.toLocaleString('en-US') }}
+                    in cash and credit combined.
+                </p>
             </div>
 
             <div class="grid items-start gap-4 sm:grid-cols-2">

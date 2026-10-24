@@ -38,7 +38,6 @@ class CreateBuyIn
             $game = $this->lockGame($gameSession);
 
             $this->validateAmounts($cash, $credit);
-            $this->ensureTotalMeetsGameLimits($game, $cash + $credit);
 
             $participant = $this->createPlayerGame->create(
                 $game,
@@ -46,7 +45,12 @@ class CreateBuyIn
                 $admin,
             );
 
-            $visit = $this->findOrCreateFirstVisit($participant, $admin);
+            $visit = $this->findOrCreateVisit(
+                $participant,
+                $game,
+                $admin,
+                $cash + $credit,
+            );
             $this->saveBuyInRecords($participant, $visit, $cash, $credit, $admin);
 
             $this->subtractCreditFromBalance($participant, $credit);
@@ -78,6 +82,27 @@ class CreateBuyIn
         if ($total < $game->min_buy_in || $total > $game->max_buy_in) {
             throw ValidationException::withMessages([
                 'buy_in_total' => "The combined cash and credit amount must be between \${$game->min_buy_in} and \${$game->max_buy_in}.",
+            ]);
+        }
+    }
+
+    private function ensureTotalMeetsReturnLimits(GameSession $game, int $total, int $endingChips): void
+    {
+        if ($endingChips > $game->max_buy_in) {
+            if ($total !== $endingChips) {
+                throw ValidationException::withMessages([
+                    'buy_in_total' => "The combined cash and credit amount must be exactly \${$endingChips} when returning.",
+                ]);
+            }
+
+            return;
+        }
+
+        $minimum = max($game->min_buy_in, $endingChips);
+
+        if ($total < $minimum || $total > $game->max_buy_in) {
+            throw ValidationException::withMessages([
+                'buy_in_total' => "The combined cash and credit amount must be between \${$minimum} and \${$game->max_buy_in} when returning.",
             ]);
         }
     }
@@ -126,16 +151,35 @@ class CreateBuyIn
             ->firstOrFail();
     }
 
-    private function findOrCreateFirstVisit(PlayerGame $participant, User $admin): PlayerGameVisit
-    {
-        /** @var PlayerGameVisit $visit */
-        return $participant->visits()->firstOrCreate(
-            ['visit_number' => 1],
-            [
-                'opened_at' => now(),
-                'created_by' => $admin->id,
-            ],
-        );
+    private function findOrCreateVisit(
+        PlayerGame $participant,
+        GameSession $game,
+        User $admin,
+        int $total,
+    ): PlayerGameVisit {
+        $latestVisit = $participant->latestVisit()
+            ->with('cashout')
+            ->first();
+
+        if ($latestVisit === null) {
+            $this->ensureTotalMeetsGameLimits($game, $total);
+        } elseif ($latestVisit->cashout === null) {
+            $this->ensureTotalMeetsGameLimits($game, $total);
+
+            return $latestVisit;
+        } else {
+            $this->ensureTotalMeetsReturnLimits(
+                $game,
+                $total,
+                $latestVisit->cashout->ending_chips,
+            );
+        }
+
+        return $participant->visits()->create([
+            'visit_number' => ($latestVisit->visit_number ?? 0) + 1,
+            'opened_at' => now(),
+            'created_by' => $admin->id,
+        ]);
     }
 
     private function saveBuyInRecords(

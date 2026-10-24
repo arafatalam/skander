@@ -21,7 +21,7 @@ return new class extends Migration
                             ->orderBy('id')
                             ->first();
 
-                        $openedAt = $firstBuyIn?->created_at
+                        $openedAt = $firstBuyIn->created_at
                             ?? $participant->created_at;
 
                         $visitId = DB::table('player_game_visits')
@@ -29,7 +29,7 @@ return new class extends Migration
                                 'player_game_id' => $participant->id,
                                 'visit_number' => 1,
                                 'opened_at' => $openedAt,
-                                'created_by' => $firstBuyIn?->created_by
+                                'created_by' => $firstBuyIn->created_by
                                     ?? $participant->created_by,
                                 'created_at' => $openedAt,
                                 'updated_at' => $openedAt,

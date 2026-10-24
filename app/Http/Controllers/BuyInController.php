@@ -7,6 +7,7 @@ use App\Http\Requests\BuyIns\StoreBuyInRequest;
 use App\Models\BuyIn;
 use App\Models\GameSession;
 use App\Models\Player;
+use App\Models\PlayerGame;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -47,9 +48,28 @@ class BuyInController extends Controller
                 'name',
             ]);
 
+        $returnLimits = PlayerGame::query()
+            ->whereIn('game_session_id', $games->modelKeys())
+            ->with(['gameSession', 'latestVisit.cashout'])
+            ->get()
+            ->filter(fn (PlayerGame $participant) => $participant->latestVisit?->cashout !== null)
+            ->map(function (PlayerGame $participant) {
+                $game = $participant->gameSession;
+                $endingChips = $participant->latestVisit->cashout->ending_chips;
+
+                return [
+                    'game_session_id' => $participant->game_session_id,
+                    'player_id' => $participant->player_id,
+                    'minimum' => max($game->min_buy_in, $endingChips),
+                    'maximum' => max($game->max_buy_in, $endingChips),
+                ];
+            })
+            ->values();
+
         return Inertia::render('buy-ins/Create', [
             'games' => $games,
             'players' => $players,
+            'returnLimits' => $returnLimits,
         ]);
     }
 
