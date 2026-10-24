@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Actions\Games\CorrectCashout;
 use App\Actions\Games\CreateCashout;
 use App\Http\Requests\Cashouts\StoreCashoutRequest;
 use App\Models\Cashout;
@@ -11,6 +12,7 @@ use App\Models\PlayerGame;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -117,17 +119,57 @@ class CashoutController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(Cashout $cashout): void
+    public function edit(Cashout $cashout): Response
     {
-        //
+        $cashout->load('playerGameVisit.playerGame.player', 'playerGameVisit.playerGame.gameSession');
+
+        $visit = $cashout->playerGameVisit;
+        $participant = $visit->playerGame;
+
+        return Inertia::render('cashouts/Edit', [
+            'cashout' => $cashout->only([
+                'id',
+                'ending_chips',
+                'cash_paid',
+                'creation_method',
+            ]) + [
+                'player_name' => $participant->player->name,
+                'game_name' => $participant->gameSession->game_name,
+                'visit_number' => $visit->visit_number,
+                'revision' => (int) ($cashout->corrections()->max('revision') ?? 0),
+            ],
+            'submissionId' => (string) Str::uuid(),
+            'updateUrl' => route('cashouts.update', $cashout),
+            'backUrl' => route('player-games.show', $participant),
+        ]);
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, Cashout $cashout): void
-    {
-        //
+    public function update(
+        Request $request,
+        Cashout $cashout,
+        CorrectCashout $action,
+    ): RedirectResponse {
+        $action->correct(
+            $cashout,
+            $request->user(),
+            $request->only([
+                'ending_chips',
+                'cash_paid',
+                'reason',
+                'revision',
+                'submission_id',
+            ]),
+        );
+
+        Inertia::flash('toast', [
+            'type' => 'success',
+            'message' => 'Cashout corrected. Review the correction history below.',
+        ]);
+
+        return to_route('cashouts.corrections', $cashout);
     }
 
     /**

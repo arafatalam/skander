@@ -13,6 +13,7 @@ use App\Models\User;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
+use Inertia\Testing\AssertableInertia as Assert;
 
 beforeEach(function () {
     $this->admin = User::factory()->create(['role' => 'admin']);
@@ -141,4 +142,43 @@ test('rolls back history and effective cashout when balance recalculation fails'
         ->and($cashout->fresh()->cash_paid)->toBe(0)
         ->and($this->player->fresh()->balance)->toBe(0)
         ->and($this->game->fresh()->status)->toBe('closed');
+});
+
+test('admin can load correction props and submit a closed game cashout correction', function () {
+    app(CloseGameSession::class)->close($this->game, $this->admin);
+    $cashout = $this->visit->cashout()->firstOrFail();
+    $this->actingAs($this->admin)->get(route('cashouts.edit', $cashout))
+        ->assertOk()->assertInertia(fn (Assert $page) => $page
+            // The Vue form is the next implementation step.
+        ->component('cashouts/Edit', false)
+        ->where('cashout.id', $cashout->id)
+        ->where('cashout.ending_chips', 0)
+        ->where('cashout.cash_paid', 0)
+        ->where('cashout.revision', 0)
+        ->where('cashout.player_name', $this->player->name)
+        ->where('cashout.game_name', $this->game->game_name)
+        ->where('submissionId', fn ($id) => Str::isUuid($id))
+        ->where('updateUrl', route('cashouts.update', $cashout))
+        ->where('backUrl', route('player-games.show', $this->participant)));
+
+    $this->patch(route('cashouts.update', $cashout), array_replace($this->input, ['reason' => ' ']))
+        ->assertSessionHasErrors('reason');
+    expect(CashoutCorrection::count())->toBe(0);
+
+    $this->patch(route('cashouts.update', $cashout), $this->input)
+        ->assertSessionHasNoErrors()->assertRedirect(route('cashouts.corrections', $cashout));
+    expect($this->player->fresh()->balance)->toBe(200)
+        ->and($this->game->fresh()->status)->toBe('closed')
+        ->and(CashoutCorrection::count())->toBe(1);
+});
+
+test('correction form and submission routes reject guests and non admins', function () {
+    app(CloseGameSession::class)->close($this->game, $this->admin);
+    $cashout = $this->visit->cashout()->firstOrFail();
+    $this->get(route('cashouts.edit', $cashout))->assertRedirect(route('login'));
+    $this->patch(route('cashouts.update', $cashout), $this->input)->assertRedirect(route('login'));
+    $this->actingAs(User::factory()->create(['role' => 'player']));
+    $this->get(route('cashouts.edit', $cashout))->assertForbidden();
+    $this->patch(route('cashouts.update', $cashout), $this->input)->assertForbidden();
+    expect(CashoutCorrection::count())->toBe(0)->and($this->player->fresh()->balance)->toBe(0);
 });

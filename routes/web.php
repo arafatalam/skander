@@ -140,6 +140,16 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->name('cashouts.store')
         ->can('create', Cashout::class);
 
+    Route::get('cashouts/{cashout}/edit', [CashoutController::class, 'edit'])
+        ->name('cashouts.edit')
+        ->whereNumber('cashout')
+        ->can('correct', 'cashout');
+
+    Route::patch('cashouts/{cashout}', [CashoutController::class, 'update'])
+        ->name('cashouts.update')
+        ->whereNumber('cashout')
+        ->can('correct', 'cashout');
+
     Route::get('payments/create', [PaymentController::class, 'create'])
         ->name('payments.create')
         ->can('create', Payment::class);
