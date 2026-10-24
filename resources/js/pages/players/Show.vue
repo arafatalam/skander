@@ -1,9 +1,23 @@
 <script setup lang="ts">
-import { Head, Link } from '@inertiajs/vue3';
+import { Form, Head, Link } from '@inertiajs/vue3';
+import { ref } from 'vue';
 import PlayerController from '@/actions/App/Http/Controllers/PlayerController';
 import Heading from '@/components/Heading.vue';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+
+import {
+    Dialog,
+    DialogClose,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+    DialogTrigger,
+} from '@/components/ui/dialog';
+
+const confirmationOpen = ref(false);
 
 type BuyIn = {
     id: number;
@@ -51,6 +65,7 @@ defineProps<{
         id: number;
         name: string;
         balance_label: string;
+        is_active: boolean;
     };
     games: Game[];
     payments: Payment[];
@@ -97,8 +112,71 @@ function formatPaymentDate(value: string): string {
                         >Edit player profile</Link
                     >
                 </Button>
+                <Dialog v-if="player.is_active" v-model:open="confirmationOpen">
+                    <DialogTrigger as-child>
+                        <Button variant="destructive">Deactivate player</Button>
+                    </DialogTrigger>
+                    <DialogContent class="max-h-[90dvh] overflow-y-auto">
+                        <DialogHeader>
+                            <DialogTitle class="break-words"
+                                >Deactivate {{ player.name }}?</DialogTitle
+                            >
+                            <DialogDescription>
+                                This player will no longer be available for
+                                buy-ins, including top-ups and returns. Their
+                                game history and balance will remain visible.
+                                You can still record cashouts and payments.
+                            </DialogDescription>
+                        </DialogHeader>
+                        <Form
+                            v-bind="PlayerController.deactivate.form(player.id)"
+                            v-slot="{ errors, processing }"
+                            @success="confirmationOpen = false"
+                            class="space-y-4"
+                        >
+                            <ul
+                                v-if="Object.keys(errors).length"
+                                role="alert"
+                                class="text-sm text-destructive"
+                            >
+                                <li
+                                    v-for="(message, field) in errors"
+                                    :key="field"
+                                >
+                                    {{ message }}
+                                </li>
+                            </ul>
+                            <DialogFooter class="gap-2">
+                                <DialogClose as-child>
+                                    <Button
+                                        type="button"
+                                        variant="outline"
+                                        :disabled="processing"
+                                        >Cancel</Button
+                                    >
+                                </DialogClose>
+                                <Button
+                                    type="submit"
+                                    variant="destructive"
+                                    :disabled="processing"
+                                    >{{
+                                        processing
+                                            ? 'Deactivating...'
+                                            : 'Confirm deactivation'
+                                    }}</Button
+                                >
+                            </DialogFooter>
+                        </Form>
+                    </DialogContent>
+                </Dialog>
             </div>
         </div>
+
+        <p v-if="!player.is_active" class="text-sm text-muted-foreground">
+            <Badge variant="secondary" class="mr-2">Inactive</Badge>
+            New buy-ins are blocked. History, cashouts, and payments remain
+            available.
+        </p>
 
         <section
             aria-labelledby="current-balance-heading"

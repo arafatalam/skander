@@ -39,6 +39,8 @@ class CreateBuyIn
 
             $this->validateAmounts($cash, $credit);
 
+            $this->ensurePlayerIsActive($player);
+
             $participant = $this->createPlayerGame->create(
                 $game,
                 $player,
@@ -57,6 +59,17 @@ class CreateBuyIn
 
             return $participant;
         });
+    }
+
+    private function ensurePlayerIsActive(Player $player): void
+    {
+        $currentPlayer = Player::query()->whereKey($player->id)->lockForUpdate()->firstOrFail();
+
+        if (! $currentPlayer->is_active) {
+            throw ValidationException::withMessages([
+                'player_id' => 'This player is inactive and cannot buy in. Choose an active player.',
+            ]);
+        }
     }
 
     private function validateAmounts(

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Actions\Players\DeactivatePlayer;
 use App\Actions\Players\GetPlayerHistory;
 use App\Http\Requests\Players\StorePlayerRequest;
 use App\Http\Requests\Players\UpdatePlayerRequest;
@@ -102,11 +103,21 @@ class PlayerController extends Controller
     }
 
     /**
-     * Remove the specified resource from storage.
-     *
-     * @return void
+     * Deactivate a player while preserving their records.
      */
-    public function destroy(Player $player)
+    public function deactivate(Request $request, Player $player, DeactivatePlayer $action): RedirectResponse
+    {
+        $action->deactivate($player, $request->user());
+
+        Inertia::flash('toast', [
+            'type' => 'success',
+            'message' => 'Player deactivated successfully.',
+        ]);
+
+        return to_route('players.show', $player);
+    }
+
+    public function destroy(Player $player): void
     {
         //
     }

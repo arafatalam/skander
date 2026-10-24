@@ -40,8 +40,13 @@ class PlayerPolicy
     }
 
     /**
-     * Determine whether the user can delete the model.
+     * Determine whether the user can deactivate the player.
      */
+    public function deactivate(User $user, Player $player): bool
+    {
+        return $user->role === 'admin';
+    }
+
     public function delete(User $user, Player $player): bool
     {
         return false;

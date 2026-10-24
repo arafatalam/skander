@@ -37,6 +37,7 @@ class GetPlayerHistory
         return [
             'id' => $player->id,
             'name' => $player->name,
+            'is_active' => $player->is_active,
             'balance_label' => $this->formatBalanceForDisplay($player->balance),
         ];
     }

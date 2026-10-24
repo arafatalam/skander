@@ -42,6 +42,7 @@ class BuyInController extends Controller
             ]);
 
         $players = Player::query()
+            ->where('is_active', true)
             ->orderBy('name')
             ->get([
                 'id',

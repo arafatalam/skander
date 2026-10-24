@@ -43,6 +43,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
             ->whereNumber('player')
             ->can('update', 'player');
 
+        Route::patch('{player}/deactivate', [PlayerController::class, 'deactivate'])
+            ->name('players.deactivate')
+            ->whereNumber('player')
+            ->can('deactivate', 'player');
+
         Route::patch('{player}', [PlayerController::class, 'update'])
             ->name('players.update')
             ->whereNumber('player')
