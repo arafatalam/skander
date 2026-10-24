@@ -28,4 +28,12 @@ class Player extends Model
     {
         return $this->hasMany(PlayerGame::class);
     }
+
+    /**
+     * @return HasMany<Payment, $this>
+     */
+    public function payments(): HasMany
+    {
+        return $this->hasMany(Payment::class);
+    }
 }

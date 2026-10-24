@@ -4,12 +4,14 @@ use App\Http\Controllers\BuyInController;
 use App\Http\Controllers\CashoutController;
 use App\Http\Controllers\GameSessionController;
 use App\Http\Controllers\GameSettingController;
+use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\PlayerController;
 use App\Http\Controllers\PlayerGameController;
 use App\Models\BuyIn;
 use App\Models\Cashout;
 use App\Models\GameSession;
 use App\Models\GameSetting;
+use App\Models\Payment;
 use App\Models\Player;
 use Illuminate\Support\Facades\Route;
 
@@ -95,6 +97,14 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('cashouts', [CashoutController::class, 'store'])
         ->name('cashouts.store')
         ->can('create', Cashout::class);
+
+    Route::get('payments/create', [PaymentController::class, 'create'])
+        ->name('payments.create')
+        ->can('create', Payment::class);
+
+    Route::post('payments', [PaymentController::class, 'store'])
+        ->name('payments.store')
+        ->can('create', Payment::class);
 
 });
 

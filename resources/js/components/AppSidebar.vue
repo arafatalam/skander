@@ -8,6 +8,7 @@ import BuyInController from '@/actions/App/Http/Controllers/BuyInController';
 import CashoutController from '@/actions/App/Http/Controllers/CashoutController';
 import GameSessionController from '@/actions/App/Http/Controllers/GameSessionController';
 import PlayerController from '@/actions/App/Http/Controllers/PlayerController';
+import PaymentController from '@/actions/App/Http/Controllers/PaymentController';
 import GameSettingController from '@/actions/App/Http/Controllers/GameSettingController';
 
 import {
@@ -57,6 +58,11 @@ const mainNavItems: NavItem[] = [
     {
         title: 'Record cashout',
         href: CashoutController.create(),
+        icon: Banknote,
+    },
+    {
+        title: 'Record payment',
+        href: PaymentController.create(),
         icon: Banknote,
     },
     {
