@@ -53,4 +53,13 @@ class PlayerGame extends Model
     {
         return $this->hasMany(BuyIn::class);
     }
+
+    /**
+     * @return HasMany<PlayerGameVisit, $this>
+     */
+    public function visits(): HasMany
+    {
+        return $this->hasMany(PlayerGameVisit::class)
+            ->orderBy('visit_number');
+    }
 }

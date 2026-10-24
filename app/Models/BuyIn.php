@@ -9,6 +9,7 @@ class BuyIn extends Model
 {
     protected $fillable = [
         'player_game_id',
+        'player_game_visit_id',
         'amount',
         'type',
         'submission_id',
@@ -36,5 +37,13 @@ class BuyIn extends Model
     public function createdBy(): BelongsTo
     {
         return $this->belongsTo(User::class, 'created_by');
+    }
+
+    /**
+     * @return BelongsTo<PlayerGameVisit, $this>
+     */
+    public function playerGameVisit(): BelongsTo
+    {
+        return $this->belongsTo(PlayerGameVisit::class);
     }
 }

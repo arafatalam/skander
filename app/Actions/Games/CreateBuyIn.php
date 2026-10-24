@@ -108,6 +108,13 @@ class CreateBuyIn
 
     private function saveBuyInRecords(PlayerGame $participant, int $cash, int $credit, User $admin): void
     {
+        $visit = $participant->visits()->firstOrCreate(
+            ['visit_number' => 1],
+            [
+                'opened_at' => now(),
+                'created_by' => $admin->id,
+            ],
+        );
 
         $submissionId = (string) Str::uuid();
 
@@ -122,6 +129,7 @@ class CreateBuyIn
             }
 
             $participant->buyIns()->create([
+                'player_game_visit_id' => $visit->id,
                 'amount' => $amount,
                 'type' => $type,
                 'submission_id' => $submissionId,
