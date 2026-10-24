@@ -7,6 +7,11 @@ use App\Models\User;
 
 class BuyInPolicy
 {
+    public function viewCorrections(User $user, BuyIn $buyIn): bool
+    {
+        return $user->role === 'admin';
+    }
+
     /**
      * Determine whether the user can view any models.
      */

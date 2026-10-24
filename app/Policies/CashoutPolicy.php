@@ -7,6 +7,11 @@ use App\Models\User;
 
 class CashoutPolicy
 {
+    public function viewCorrections(User $user, Cashout $cashout): bool
+    {
+        return $user->role === 'admin';
+    }
+
     /**
      * Determine whether the user can view any models.
      */

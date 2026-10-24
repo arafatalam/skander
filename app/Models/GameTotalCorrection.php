@@ -2,14 +2,15 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-class GameTotalCorrection extends Model
+class GameTotalCorrection extends Correction
 {
     protected $fillable = [
         'game_session_id',
         'field',
+        'revision',
+        'submission_id',
         'previous_amount',
         'new_amount',
         'reason',
@@ -20,6 +21,7 @@ class GameTotalCorrection extends Model
     protected function casts(): array
     {
         return [
+            'revision' => 'integer',
             'previous_amount' => 'integer',
             'new_amount' => 'integer',
             'corrected_at' => 'datetime',

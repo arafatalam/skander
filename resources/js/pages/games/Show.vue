@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import { Form, Head } from '@inertiajs/vue3';
+import { Form, Head, Link } from '@inertiajs/vue3';
 import { ref } from 'vue';
+import CorrectionHistoryController from '@/actions/App/Http/Controllers/CorrectionHistoryController';
 import GameSessionController from '@/actions/App/Http/Controllers/GameSessionController';
 import Heading from '@/components/Heading.vue';
 import { Badge } from '@/components/ui/badge';
@@ -137,6 +138,28 @@ defineProps<{
             </Dialog>
         </div>
 
+        <div class="flex flex-wrap gap-4 text-sm">
+            <Link
+                :href="
+                    CorrectionHistoryController.gameTotal({
+                        gameSession: game.id,
+                        field: 'total_tips',
+                    })
+                "
+                class="underline"
+                >Tip correction history</Link
+            >
+            <Link
+                :href="
+                    CorrectionHistoryController.gameTotal({
+                        gameSession: game.id,
+                        field: 'total_cost',
+                    })
+                "
+                class="underline"
+                >Cost correction history</Link
+            >
+        </div>
         <section aria-labelledby="game-totals-heading" class="space-y-4">
             <h2 id="game-totals-heading" class="text-lg font-semibold">
                 Game totals

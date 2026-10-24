@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\BuyInController;
 use App\Http\Controllers\CashoutController;
+use App\Http\Controllers\CorrectionHistoryController;
 use App\Http\Controllers\GameSessionController;
 use App\Http\Controllers\GameSettingController;
 use App\Http\Controllers\PaymentController;
@@ -85,6 +86,27 @@ Route::middleware(['auth', 'verified'])->group(function () {
             ->can('view', 'gameSession');
 
     });
+
+    Route::get('buy-ins/{buyIn}/corrections', [CorrectionHistoryController::class, 'buyIn'])
+        ->name('buy-ins.corrections')
+        ->whereNumber('buyIn')
+        ->can('viewCorrections', 'buyIn');
+
+    Route::get('cashouts/{cashout}/corrections', [CorrectionHistoryController::class, 'cashout'])
+        ->name('cashouts.corrections')
+        ->whereNumber('cashout')
+        ->can('viewCorrections', 'cashout');
+
+    Route::get('payments/{payment}/corrections', [CorrectionHistoryController::class, 'payment'])
+        ->name('payments.corrections')
+        ->whereNumber('payment')
+        ->can('viewCorrections', 'payment');
+
+    Route::get('games/{gameSession}/corrections/{field}', [CorrectionHistoryController::class, 'gameTotal'])
+        ->name('games.corrections')
+        ->whereNumber('gameSession')
+        ->whereIn('field', ['total_tips', 'total_cost'])
+        ->can('viewCorrections', 'gameSession');
 
     Route::get('player-games/{playerGame}', [PlayerGameController::class, 'show'])
         ->name('player-games.show')

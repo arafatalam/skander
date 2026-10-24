@@ -7,6 +7,11 @@ use App\Models\User;
 
 class PaymentPolicy
 {
+    public function viewCorrections(User $user, Payment $payment): bool
+    {
+        return $user->role === 'admin';
+    }
+
     /**
      * Determine whether the user can view any models.
      */

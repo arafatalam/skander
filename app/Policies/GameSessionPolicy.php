@@ -7,6 +7,11 @@ use App\Models\User;
 
 class GameSessionPolicy
 {
+    public function viewCorrections(User $user, GameSession $gameSession): bool
+    {
+        return $user->role === 'admin';
+    }
+
     /**
      * Determine whether the user can view any models.
      */

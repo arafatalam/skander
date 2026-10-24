@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { Form, Head, Link } from '@inertiajs/vue3';
 import { ref } from 'vue';
+import CorrectionHistoryController from '@/actions/App/Http/Controllers/CorrectionHistoryController';
 import PlayerController from '@/actions/App/Http/Controllers/PlayerController';
 import Heading from '@/components/Heading.vue';
 import { Badge } from '@/components/ui/badge';
@@ -303,6 +304,15 @@ function formatPaymentDate(value: string): string {
                                         {{ formatDateTime(buyIn.recorded_at) }}
                                     </time>
                                 </div>
+                                <Link
+                                    :href="
+                                        CorrectionHistoryController.buyIn(
+                                            buyIn.id,
+                                        )
+                                    "
+                                    class="text-sm underline"
+                                    >Correction history</Link
+                                >
                                 <span class="font-medium tabular-nums">{{
                                     formatMoney(buyIn.amount)
                                 }}</span>
@@ -310,6 +320,16 @@ function formatPaymentDate(value: string): string {
                         </ul>
                     </div>
                     <div v-if="visit.cashout" class="space-y-3 border-t pt-4">
+                        <Link
+                            :href="
+                                CorrectionHistoryController.cashout(
+                                    visit.cashout.id,
+                                )
+                            "
+                            class="text-sm underline"
+                            >Correction history</Link
+                        >
+
                         <h5 class="text-sm font-medium">
                             {{
                                 visit.cashout.creation_method === 'automatic'
@@ -371,6 +391,11 @@ function formatPaymentDate(value: string): string {
                     :key="payment.id"
                     class="min-w-0 space-y-3 rounded-xl border border-sidebar-border/70 bg-card p-4 sm:p-6"
                 >
+                    <Link
+                        :href="CorrectionHistoryController.payment(payment.id)"
+                        class="text-sm underline"
+                        >Correction history</Link
+                    >
                     <div
                         class="flex flex-wrap items-start justify-between gap-2"
                     >

@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class BuyIn extends Model
 {
@@ -45,5 +46,11 @@ class BuyIn extends Model
     public function playerGameVisit(): BelongsTo
     {
         return $this->belongsTo(PlayerGameVisit::class);
+    }
+
+    /** @return HasMany<BuyInCorrection, $this> */
+    public function corrections(): HasMany
+    {
+        return $this->hasMany(BuyInCorrection::class)->orderBy('revision');
     }
 }
