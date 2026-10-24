@@ -1,9 +1,11 @@
 <?php
 
+use App\Http\Controllers\BuyInController;
 use App\Http\Controllers\GameSessionController;
 use App\Http\Controllers\GameSettingController;
 use App\Http\Controllers\PlayerController;
 use App\Http\Controllers\PlayerGameController;
+use App\Models\BuyIn;
 use App\Models\GameSession;
 use App\Models\GameSetting;
 use App\Models\Player;
@@ -57,6 +59,14 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('game-settings', [GameSettingController::class, 'editStandalone'])
         ->name('game-settings.standalone')
         ->can('view', GameSetting::class);
+
+    Route::get('buy-ins/create', [BuyInController::class, 'create'])
+        ->name('buy-ins.create')
+        ->can('create', BuyIn::class);
+
+    Route::post('buy-ins', [BuyInController::class, 'store'])
+        ->name('buy-ins.store')
+        ->can('create', BuyIn::class);
 
 });
 

@@ -67,12 +67,25 @@ const useCustomLimits = ref(false);
                     <input type="hidden" name="game_name" :value="gameName" />
                     <input
                         type="hidden"
+                        name="confirmed_min_buy_in"
+                        :value="defaultLimits.min_buy_in"
+                    />
+                    <input
+                        type="hidden"
+                        name="confirmed_max_buy_in"
+                        :value="defaultLimits.max_buy_in"
+                    />
+                    <input
+                        type="hidden"
                         name="use_custom_limits"
                         :value="useCustomLimits ? '1' : '0'"
                     />
 
                     <InputError :message="errors.game_date" />
                     <InputError :message="errors.game_name" />
+                    <InputError :message="errors.default_limits" />
+                    <InputError :message="errors.confirmed_min_buy_in" />
+                    <InputError :message="errors.confirmed_max_buy_in" />
 
                     <div class="rounded-md border p-4 text-sm">
                         <p class="font-medium">Default buy-in limits</p>

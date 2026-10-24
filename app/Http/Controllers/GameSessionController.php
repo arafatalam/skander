@@ -73,6 +73,10 @@ class GameSessionController extends Controller
             $request->validated('game_date'),
             $request->user(),
             $request->validated('game_name'),
+            [
+                'min_buy_in' => (int) $request->validated('confirmed_min_buy_in'),
+                'max_buy_in' => (int) $request->validated('confirmed_max_buy_in'),
+            ],
             $customLimits,
         );
 

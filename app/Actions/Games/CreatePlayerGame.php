@@ -23,25 +23,20 @@ class CreatePlayerGame
                 ->lockForUpdate()
                 ->firstOrFail();
 
-            if ($game->status !== 'open') {
-                throw ValidationException::withMessages([
-                    'game_session' => 'Players cannot join a closed game.',
-                ]);
-            }
+            $this->ensureGameIsOpen($game);
 
             $currentPlayer = Player::query()
                 ->where('id', $player->id)
                 ->lockForUpdate()
                 ->firstOrFail();
 
-            $existingRecord = PlayerGame::query()
-                ->where('player_id', $currentPlayer->id)
-                ->where('game_session_id', $game->id)
-                ->first();
+            $existingRecord = $this->findExistingParticipant($currentPlayer, $game);
 
             if ($existingRecord !== null) {
                 return $existingRecord;
             }
+
+            $this->ensurePlayerHasNoOtherOpenGame($currentPlayer, $game);
 
             return PlayerGame::create([
                 'player_id' => $currentPlayer->id,
@@ -50,5 +45,39 @@ class CreatePlayerGame
                 'created_by' => $admin->id,
             ]);
         });
+    }
+
+    private function ensurePlayerHasNoOtherOpenGame(Player $player, GameSession $game): void
+    {
+        $hasAnotherOpenGame = PlayerGame::query()
+            ->where('player_id', $player->id)
+            ->where('game_session_id', '!=', $game->id)
+            ->whereHas('gameSession', function ($query) {
+                $query->where('status', 'open');
+            })
+            ->exists();
+
+        if ($hasAnotherOpenGame) {
+            throw ValidationException::withMessages([
+                'player_id' => 'This player already belongs to another open game.',
+            ]);
+        }
+    }
+
+    private function ensureGameIsOpen(GameSession $game): void
+    {
+        if ($game->status !== 'open') {
+            throw ValidationException::withMessages([
+                'game_session_id' => 'Players cannot join a closed game.',
+            ]);
+        }
+    }
+
+    private function findExistingParticipant(Player $player, GameSession $game): ?PlayerGame
+    {
+        return PlayerGame::query()
+            ->where('player_id', $player->id)
+            ->where('game_session_id', $game->id)
+            ->first();
     }
 }

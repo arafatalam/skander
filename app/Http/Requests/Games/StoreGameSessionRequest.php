@@ -26,6 +26,8 @@ class StoreGameSessionRequest extends FormRequest
             'game_date' => ['required', 'date_format:Y-m-d'],
             'game_name' => ['required', 'string', 'max:16'],
             'use_custom_limits' => ['required', 'boolean'],
+            'confirmed_min_buy_in' => ['required', 'integer', 'min:1', 'max:2147483647'],
+            'confirmed_max_buy_in' => ['required', 'integer', 'min:1', 'max:2147483647'],
             'min_buy_in' => [
                 'exclude_unless:use_custom_limits,true',
                 'required',

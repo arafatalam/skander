@@ -39,6 +39,7 @@ yarn-error.log
 /.mcp.json
 /AGENTS.md
 /docs/project-inputs/
+/docs/TODO.md
 /CLAUDE.md
 /boost.json
 /opencode.json

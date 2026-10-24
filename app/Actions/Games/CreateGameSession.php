@@ -36,15 +36,17 @@ class CreateGameSession
     }
 
     /**
+     * @param  array{min_buy_in: int, max_buy_in: int}  $confirmedDefaults
      * @param  array{min_buy_in: int, max_buy_in: int}|null  $customLimits
      */
     public function create(
         string $gameDate,
         User $admin,
         string $confirmedGameName,
+        array $confirmedDefaults,
         ?array $customLimits = null,
     ): GameSession {
-        $game = DB::transaction(function () use ($gameDate, $admin, $confirmedGameName, $customLimits) {
+        $game = DB::transaction(function () use ($gameDate, $admin, $confirmedGameName, $confirmedDefaults, $customLimits) {
             // Make simultaneous requests from the Admin wait their turn.
             User::query()
                 ->whereKey($admin->getKey())
@@ -69,6 +71,15 @@ class CreateGameSession
                     ->whereKey(1)
                     ->sharedLock()
                     ->firstOrFail();
+
+                if (
+                    $confirmedDefaults['min_buy_in'] !== $settings->default_min_buy_in
+                    || $confirmedDefaults['max_buy_in'] !== $settings->default_max_buy_in
+                ) {
+                    throw ValidationException::withMessages([
+                        'default_limits' => 'The default buy-in limits have changed. Refresh the page and confirm the new limits.',
+                    ]);
+                }
 
                 $limits = [
                     'min_buy_in' => $settings->default_min_buy_in,

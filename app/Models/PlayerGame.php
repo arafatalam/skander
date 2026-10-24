@@ -37,6 +37,9 @@ class PlayerGame extends Model
         return $this->belongsTo(User::class, 'created_by');
     }
 
+    /**
+     * @return HasMany<BuyIn, $this>
+     */
     public function buyIns(): HasMany
     {
         return $this->hasMany(BuyIn::class);
