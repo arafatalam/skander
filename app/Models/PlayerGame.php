@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class PlayerGame extends Model
 {
@@ -61,5 +62,14 @@ class PlayerGame extends Model
     {
         return $this->hasMany(PlayerGameVisit::class)
             ->orderBy('visit_number');
+    }
+
+    /**
+     * @return HasOne<PlayerGameVisit, $this>
+     */
+    public function latestVisit(): HasOne
+    {
+        return $this->hasOne(PlayerGameVisit::class)
+            ->ofMany('visit_number', 'max');
     }
 }

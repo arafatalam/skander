@@ -128,6 +128,7 @@ class CreateBuyIn
 
     private function findOrCreateFirstVisit(PlayerGame $participant, User $admin): PlayerGameVisit
     {
+        /** @var PlayerGameVisit $visit */
         return $participant->visits()->firstOrCreate(
             ['visit_number' => 1],
             [

@@ -5,6 +5,7 @@ import NavFooter from '@/components/NavFooter.vue';
 import NavMain from '@/components/NavMain.vue';
 import NavUser from '@/components/NavUser.vue';
 import BuyInController from '@/actions/App/Http/Controllers/BuyInController';
+import CashoutController from '@/actions/App/Http/Controllers/CashoutController';
 import GameSessionController from '@/actions/App/Http/Controllers/GameSessionController';
 import PlayerController from '@/actions/App/Http/Controllers/PlayerController';
 import GameSettingController from '@/actions/App/Http/Controllers/GameSettingController';
@@ -51,6 +52,11 @@ const mainNavItems: NavItem[] = [
     {
         title: 'Record buy-in',
         href: BuyInController.create(),
+        icon: Banknote,
+    },
+    {
+        title: 'Record cashout',
+        href: CashoutController.create(),
         icon: Banknote,
     },
     {

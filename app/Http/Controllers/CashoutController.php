@@ -2,15 +2,24 @@
 
 namespace App\Http\Controllers;
 
+use App\Actions\Games\CreateCashout;
+use App\Http\Requests\Cashouts\StoreCashoutRequest;
 use App\Models\Cashout;
+use App\Models\GameSession;
+use App\Models\Player;
+use App\Models\PlayerGame;
+use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Inertia\Inertia;
+use Inertia\Response;
 
 class CashoutController extends Controller
 {
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(): void
     {
         //
     }
@@ -18,23 +27,89 @@ class CashoutController extends Controller
     /**
      * Show the form for creating a new resource.
      */
-    public function create()
+    public function create(): Response
     {
-        //
+        $participants = $this->getParticipantsReadyToCashOut()
+            ->map(fn (PlayerGame $participant) => [
+                'game_session_id' => $participant->game_session_id,
+                'game_name' => $participant->gameSession->game_name,
+                'player_id' => $participant->player_id,
+                'player_name' => $participant->player->name,
+                'expected_visit_id' => $participant->latestVisit->id,
+                'visit_number' => $participant->latestVisit->visit_number,
+            ]);
+
+        return Inertia::render('cashouts/Create', [
+            'games' => $this->getOpenGames(),
+            'participants' => $participants,
+        ]);
+    }
+
+    /**
+     * @return Collection<int, GameSession>
+     */
+    private function getOpenGames(): Collection
+    {
+        return GameSession::query()
+            ->where('status', 'open')
+            ->orderByDesc('game_date')
+            ->orderByDesc('game_number')
+            ->get(['id', 'game_name']);
+    }
+
+    /**
+     * @return Collection<int, PlayerGame>
+     */
+    private function getParticipantsReadyToCashOut(): Collection
+    {
+        return PlayerGame::query()
+            ->whereHas('gameSession', function ($query) {
+                $query->where('status', 'open');
+            })
+            ->whereHas('latestVisit', function ($query) {
+                $query->has('buyIns')
+                    ->doesntHave('cashout');
+            })
+            ->with(['player', 'gameSession', 'latestVisit'])
+            ->orderByDesc('id')
+            ->get();
     }
 
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(StoreCashoutRequest $request, CreateCashout $action): RedirectResponse
     {
-        //
+
+        $game = GameSession::query()
+            ->findOrFail($request->integer('game_session_id'));
+
+        $player = Player::query()
+            ->findOrFail($request->integer('player_id'));
+
+        $cashout = $action->create(
+            $game,
+            $player,
+            $request->user(),
+            $request->integer('ending_chips'),
+            $request->integer('cash_paid'),
+            $request->integer('expected_visit_id'),
+        );
+
+        Inertia::flash('toast', [
+            'type' => 'success',
+            'message' => 'Cashout recorded successfully.',
+        ]);
+
+        return to_route('player-games.show', [
+            'playerGame' => $cashout->playerGameVisit->player_game_id,
+        ]);
     }
 
     /**
      * Display the specified resource.
      */
-    public function show(Cashout $cashout)
+    public function show(Cashout $cashout): void
     {
         //
     }
@@ -42,7 +117,7 @@ class CashoutController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(Cashout $cashout)
+    public function edit(Cashout $cashout): void
     {
         //
     }
@@ -50,7 +125,7 @@ class CashoutController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, Cashout $cashout)
+    public function update(Request $request, Cashout $cashout): void
     {
         //
     }
@@ -58,7 +133,7 @@ class CashoutController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Cashout $cashout)
+    public function destroy(Cashout $cashout): void
     {
         //
     }

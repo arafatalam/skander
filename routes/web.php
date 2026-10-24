@@ -1,11 +1,13 @@
 <?php
 
 use App\Http\Controllers\BuyInController;
+use App\Http\Controllers\CashoutController;
 use App\Http\Controllers\GameSessionController;
 use App\Http\Controllers\GameSettingController;
 use App\Http\Controllers\PlayerController;
 use App\Http\Controllers\PlayerGameController;
 use App\Models\BuyIn;
+use App\Models\Cashout;
 use App\Models\GameSession;
 use App\Models\GameSetting;
 use App\Models\Player;
@@ -67,6 +69,14 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('buy-ins', [BuyInController::class, 'store'])
         ->name('buy-ins.store')
         ->can('create', BuyIn::class);
+
+    Route::get('cashouts/create', [CashoutController::class, 'create'])
+        ->name('cashouts.create')
+        ->can('create', Cashout::class);
+
+    Route::post('cashouts', [CashoutController::class, 'store'])
+        ->name('cashouts.store')
+        ->can('create', Cashout::class);
 
 });
 
