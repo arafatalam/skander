@@ -13,7 +13,7 @@ return new class extends Migration
     public function up(): void
     {
         $settings = DB::table('game_settings')
-            ->where('id', 1)
+            ->orderBy('id')
             ->first();
 
         if ($settings === null) {

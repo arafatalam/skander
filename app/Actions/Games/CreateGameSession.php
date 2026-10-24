@@ -105,8 +105,10 @@ class CreateGameSession
 
     private function lockGameSettings(): GameSetting
     {
+        $settings = GameSetting::houseDefaults();
+
         return GameSetting::query()
-            ->whereKey(1)
+            ->whereKey($settings->getKey())
             ->sharedLock()
             ->firstOrFail();
     }

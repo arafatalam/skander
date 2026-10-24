@@ -48,7 +48,7 @@ class GameSessionController extends Controller
     {
         $gameDate = Carbon::today()->toDateString();
         $details = $action->nextGameDetails($gameDate);
-        $settings = GameSetting::query()->findOrFail(1);
+        $settings = GameSetting::houseDefaults();
 
         return Inertia::render('games/Create', [
             'gameDate' => $gameDate,

@@ -15,7 +15,7 @@ class GameSettingController extends Controller
      */
     public function edit(): Response
     {
-        $settings = GameSetting::query()->findOrFail(1);
+        $settings = GameSetting::houseDefaults();
 
         return Inertia::render('settings/GameSettings', [
             'settings' => [
@@ -27,7 +27,7 @@ class GameSettingController extends Controller
 
     public function editStandalone(): Response
     {
-        $settings = GameSetting::query()->findOrFail(1);
+        $settings = GameSetting::houseDefaults();
 
         return Inertia::render('game-settings/Edit', [
             'settings' => [
@@ -43,7 +43,7 @@ class GameSettingController extends Controller
     public function update(UpdateGameSettingRequest $request): RedirectResponse
     {
 
-        $settings = GameSetting::query()->findOrFail(1);
+        $settings = GameSetting::houseDefaults();
 
         $settings->update($request->validated());
 

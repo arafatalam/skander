@@ -20,7 +20,6 @@ return new class extends Migration
         });
 
         DB::table('game_settings')->insert([
-            'id' => 1,
             'default_min_buy_in' => 100,
             'default_max_buy_in' => 500,
             'created_at' => now(),

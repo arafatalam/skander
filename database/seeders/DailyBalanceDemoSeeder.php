@@ -28,7 +28,7 @@ class DailyBalanceDemoSeeder extends Seeder
         if ($players->isEmpty()) {
             throw new LogicException('At least one existing active player is required.');
         }
-        GameSetting::updateOrCreate(['id' => 1], ['default_min_buy_in' => 100, 'default_max_buy_in' => 500]);
+        GameSetting::houseDefaults();
         $today = Carbon::today();
         $originalClock = Carbon::getTestNow();
         try {
