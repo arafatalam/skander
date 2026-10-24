@@ -25,6 +25,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
             ->name('players')
             ->can('viewAny', Player::class);
 
+        Route::get('{player}', [PlayerController::class, 'show'])
+            ->name('players.show')
+            ->can('view', 'player');
+
         Route::get('create', [PlayerController::class, 'create'])
             ->name('players.create')
             ->can('create', Player::class);

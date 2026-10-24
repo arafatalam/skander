@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Actions\Players\GetPlayerHistory;
 use App\Http\Requests\Players\StorePlayerRequest;
 use App\Models\Player;
 use Illuminate\Http\RedirectResponse;
@@ -62,13 +63,16 @@ class PlayerController extends Controller
     }
 
     /**
-     * Display the specified resource.
-     *
-     * @return void
+     * Display the player's history page.
      */
-    public function show(Player $player)
-    {
-        //
+    public function show(
+        Player $player,
+        GetPlayerHistory $getPlayerHistory,
+    ): Response {
+        return Inertia::render(
+            'players/Show',
+            $getPlayerHistory->get($player),
+        );
     }
 
     /**
