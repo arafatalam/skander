@@ -56,7 +56,6 @@ class CreatePlayerGame
         return PlayerGame::create([
             'player_id' => $player->id,
             'game_session_id' => $game->id,
-            'opening_balance' => $player->balance,
             'created_by' => $admin->id,
         ]);
     }

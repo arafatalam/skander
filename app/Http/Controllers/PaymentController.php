@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Actions\Payments\CorrectPayment;
 use App\Actions\Payments\RecordPayment;
 use App\Http\Requests\Payments\StorePaymentRequest;
 use App\Models\Payment;
@@ -82,17 +83,30 @@ class PaymentController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(Payment $payment): void
+    public function edit(Payment $payment): Response
     {
-        //
+        return Inertia::render('payments/Edit', [
+            'payment' => $payment->only(['id', 'amount', 'direction', 'note']) + [
+                'paid_at' => $payment->paid_at->toDateString(),
+                'player_name' => $payment->player->name,
+                'revision' => (int) ($payment->corrections()->max('revision') ?? 0),
+            ],
+            'submissionId' => (string) Str::uuid(),
+            'today' => today()->toDateString(),
+            'updateUrl' => route('payments.update', $payment),
+            'backUrl' => route('players.show', $payment->player_id),
+        ]);
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, Payment $payment): void
+    public function update(Request $request, Payment $payment, CorrectPayment $action): RedirectResponse
     {
-        //
+        $action->correct($payment, $request->user(), $request->all());
+        Inertia::flash('toast', ['type' => 'success', 'message' => 'Payment corrected. Daily balances now reflect the corrected date and amount.']);
+
+        return to_route('players.show', $payment->player_id);
     }
 
     /**

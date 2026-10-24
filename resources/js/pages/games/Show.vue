@@ -33,8 +33,7 @@ type Visit = {
 type Player = {
     id: number;
     name: string;
-    opening_balance: number;
-    balance: number;
+    daily_balance: number;
     visits: Visit[];
 };
 
@@ -224,18 +223,10 @@ defineProps<{
             <dl class="grid gap-4 sm:grid-cols-2">
                 <div>
                     <dt class="text-sm text-muted-foreground">
-                        Opening balance
+                        Balance at end of day
                     </dt>
                     <dd class="mt-1 font-medium">
-                        {{ balanceLabel(player.opening_balance) }}
-                    </dd>
-                </div>
-                <div>
-                    <dt class="text-sm text-muted-foreground">
-                        Game balance · all visits
-                    </dt>
-                    <dd class="mt-1 font-medium">
-                        {{ balanceLabel(player.balance) }}
+                        {{ balanceLabel(player.daily_balance) }}
                     </dd>
                 </div>
             </dl>

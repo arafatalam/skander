@@ -2,6 +2,7 @@
 
 namespace App\Actions\Games;
 
+use App\Actions\Players\CalculatePlayerBalance;
 use App\Models\GameSession;
 use App\Models\PlayerGame;
 use App\Models\PlayerGameVisit;
@@ -9,7 +10,7 @@ use App\Models\PlayerGameVisit;
 class GetGameDetails
 {
     public function __construct(
-        private readonly CalculateGameBalance $calculateGameBalance,
+        private readonly CalculatePlayerBalance $calculatePlayerBalance,
     ) {}
 
     /**
@@ -65,8 +66,7 @@ class GetGameDetails
         return [
             'id' => $playerGame->id,
             'name' => $playerGame->player->name,
-            'opening_balance' => $playerGame->opening_balance,
-            'balance' => $this->calculateGameBalance->calculate($playerGame),
+            'daily_balance' => $this->calculatePlayerBalance->calculate($playerGame->player, $playerGame->gameSession->game_date->toDateString()),
             'visits' => $playerGame->visits->map(
                 fn (PlayerGameVisit $visit) => $this->visitDetails($visit),
             ),

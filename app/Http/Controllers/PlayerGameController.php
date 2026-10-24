@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Actions\Games\CalculateGameBalance;
+use App\Actions\Players\CalculatePlayerBalance;
 use App\Models\PlayerGame;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -43,20 +43,18 @@ class PlayerGameController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(PlayerGame $playerGame, CalculateGameBalance $calculateGameBalance): Response
+    public function show(PlayerGame $playerGame, CalculatePlayerBalance $calculatePlayerBalance): Response
     {
         $playerGame->load(['player', 'gameSession']);
 
-        $gameBalance = $calculateGameBalance->calculate($playerGame);
+        $gameBalance = $calculatePlayerBalance->calculate($playerGame->player, $playerGame->gameSession->game_date->toDateString());
 
         return Inertia::render('player-games/Show', [
             'playerGame' => [
                 'id' => $playerGame->id,
                 'player_name' => $playerGame->player->name,
                 'game_name' => $playerGame->gameSession->game_name,
-                'opening_balance' => $playerGame->opening_balance,
-                'opening_balance_label' => $this->balanceLabel($playerGame->opening_balance),
-                'game_balance_label' => $this->balanceLabel($gameBalance),
+                'daily_balance_label' => $this->balanceLabel($gameBalance),
             ],
         ]);
     }

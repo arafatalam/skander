@@ -12,6 +12,11 @@ class BuyInPolicy
         return $user->role === 'admin';
     }
 
+    public function correct(User $user, BuyIn $buyIn): bool
+    {
+        return $user->role === 'admin';
+    }
+
     /**
      * Determine whether the user can view any models.
      */

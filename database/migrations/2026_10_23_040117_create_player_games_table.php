@@ -22,8 +22,6 @@ return new class extends Migration
                 ->constrained()
                 ->restrictOnDelete();
 
-            $table->bigInteger('opening_balance');
-
             $table->foreignId('created_by')
                 ->constrained('users')
                 ->restrictOnDelete();

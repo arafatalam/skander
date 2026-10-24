@@ -9,9 +9,7 @@ defineProps<{
         id: number;
         player_name: string;
         game_name: string;
-        opening_balance: number;
-        opening_balance_label: string;
-        game_balance_label: string;
+        daily_balance_label: string;
     };
 }>();
 </script>
@@ -25,37 +23,22 @@ defineProps<{
             :description="playerGame.game_name"
         />
 
-        <div class="grid max-w-4xl gap-4 md:grid-cols-2">
+        <div class="grid max-w-4xl gap-4">
             <section
                 class="min-w-0 rounded-xl border border-sidebar-border/70 bg-card p-6"
             >
                 <h2 class="text-sm font-medium text-muted-foreground">
-                    Opening balance
+                    Balance at end of day
                 </h2>
 
                 <p class="mt-2 text-xl font-semibold">
-                    {{ playerGame.opening_balance_label }}
+                    {{ playerGame.daily_balance_label }}
                 </p>
 
                 <p class="mt-2 text-sm text-muted-foreground">
-                    Balance carried into this game from earlier activity.
-                </p>
-            </section>
-
-            <section
-                class="min-w-0 rounded-xl border border-sidebar-border/70 bg-card p-6"
-            >
-                <h2 class="text-sm font-medium text-muted-foreground">
-                    Game balance
-                </h2>
-
-                <p class="mt-2 text-xl font-semibold">
-                    {{ playerGame.game_balance_label }}
-                </p>
-
-                <p class="mt-2 text-sm text-muted-foreground">
-                    Opening balance adjusted for all recorded credit buy-ins and
-                    cashouts in this game. Includes every visit.
+                    Includes all game activity and payments dated on or before
+                    this game’s date. All games on the same date share this
+                    balance.
                 </p>
             </section>
         </div>

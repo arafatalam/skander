@@ -12,16 +12,8 @@ class PlayerGame extends Model
     protected $fillable = [
         'player_id',
         'game_session_id',
-        'opening_balance',
         'created_by',
     ];
-
-    protected function casts(): array
-    {
-        return [
-            'opening_balance' => 'integer',
-        ];
-    }
 
     /**
      * @return BelongsTo<Player, $this>

@@ -2,7 +2,6 @@
 
 namespace App\Actions\Players;
 
-use App\Actions\Games\CalculateGameBalance;
 use App\Models\BuyIn;
 use App\Models\Cashout;
 use App\Models\Payment;
@@ -14,7 +13,7 @@ use Illuminate\Support\Collection;
 class GetPlayerHistory
 {
     public function __construct(
-        private readonly CalculateGameBalance $calculateGameBalance,
+        private readonly CalculatePlayerBalance $calculatePlayerBalance,
     ) {}
 
     /**
@@ -62,15 +61,12 @@ class GetPlayerHistory
      */
     private function gameDetails(PlayerGame $playerGame): array
     {
-        $gameBalance = $this->calculateGameBalance->calculate($playerGame);
+        $gameBalance = $this->calculatePlayerBalance->calculate($playerGame->player, $playerGame->gameSession->game_date->toDateString());
 
         return [
             'id' => $playerGame->id,
             'game_name' => $playerGame->gameSession->game_name,
-            'opening_balance_label' => $this->formatBalanceForDisplay(
-                $playerGame->opening_balance,
-            ),
-            'game_balance_label' => $this->formatBalanceForDisplay($gameBalance),
+            'daily_balance_label' => $this->formatBalanceForDisplay($gameBalance),
             'visits' => $this->visitHistory($playerGame),
         ];
     }
@@ -173,6 +169,7 @@ class GetPlayerHistory
             'paid_at' => $payment->paid_at->toDateString(),
             'recorded_at' => $payment->created_at->toIso8601String(),
             'note' => $payment->note,
+            'edit_url' => route('payments.edit', $payment),
         ];
     }
 

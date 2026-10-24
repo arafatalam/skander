@@ -46,8 +46,7 @@ type Visit = {
 type Game = {
     id: number;
     game_name: string;
-    opening_balance_label: string;
-    game_balance_label: string;
+    daily_balance_label: string;
     visits: Visit[];
 };
 
@@ -59,6 +58,7 @@ type Payment = {
     paid_at: string;
     recorded_at: string;
     note: string | null;
+    edit_url: string;
 };
 
 defineProps<{
@@ -223,24 +223,16 @@ function formatPaymentDate(value: string): string {
                 <dl class="grid gap-4 sm:grid-cols-2">
                     <div>
                         <dt class="text-sm text-muted-foreground">
-                            Opening balance
+                            Balance at end of day
                         </dt>
                         <dd class="mt-1 font-medium break-words">
-                            {{ game.opening_balance_label }}
-                        </dd>
-                    </div>
-                    <div>
-                        <dt class="text-sm text-muted-foreground">
-                            Game balance · all visits
-                        </dt>
-                        <dd class="mt-1 font-medium break-words">
-                            {{ game.game_balance_label }}
+                            {{ game.daily_balance_label }}
                         </dd>
                     </div>
                 </dl>
                 <p class="text-sm text-muted-foreground">
-                    Game balance includes the opening balance and this game's
-                    activity. Later payments are listed separately below.
+                    Includes all activity and payments dated on or before this
+                    game’s date, across every game played that day.
                 </p>
                 <p
                     v-if="game.visits.length === 0"
@@ -395,6 +387,11 @@ function formatPaymentDate(value: string): string {
                         :href="CorrectionHistoryController.payment(payment.id)"
                         class="text-sm underline"
                         >Correction history</Link
+                    >
+                    <Link
+                        :href="payment.edit_url"
+                        class="ml-4 text-sm underline"
+                        >Correct payment</Link
                     >
                     <div
                         class="flex flex-wrap items-start justify-between gap-2"

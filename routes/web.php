@@ -148,6 +148,16 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->name('payments.store')
         ->can('create', Payment::class);
 
+    Route::get('payments/{payment}/edit', [PaymentController::class, 'edit'])
+        ->name('payments.edit')
+        ->whereNumber('payment')
+        ->can('correct', 'payment');
+
+    Route::patch('payments/{payment}', [PaymentController::class, 'update'])
+        ->name('payments.update')
+        ->whereNumber('payment')
+        ->can('correct', 'payment');
+
 });
 
 require __DIR__.'/settings.php';

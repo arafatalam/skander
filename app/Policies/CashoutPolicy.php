@@ -12,6 +12,11 @@ class CashoutPolicy
         return $user->role === 'admin';
     }
 
+    public function correct(User $user, Cashout $cashout): bool
+    {
+        return $user->role === 'admin';
+    }
+
     /**
      * Determine whether the user can view any models.
      */

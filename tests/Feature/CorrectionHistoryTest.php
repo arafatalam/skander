@@ -1,9 +1,9 @@
 <?php
 
 use App\Actions\Corrections\GetCorrectionHistory;
-use App\Actions\Games\CalculateGameBalance;
 use App\Actions\Games\CloseGameSession;
 use App\Actions\Games\CreateBuyIn;
+use App\Actions\Players\CalculatePlayerBalance;
 use App\Models\BuyIn;
 use App\Models\BuyInCorrection;
 use App\Models\Cashout;
@@ -85,7 +85,7 @@ test('two revisions preserve original automatic cashout and count only current v
         ->and($history['revisions'][1]['reason'])->toBe('Correct final chip count')
         ->and($history['revisions'][1]['actor'])->toBe($this->admin->name)
         ->and($this->game->fresh()->status)->toBe('closed')
-        ->and(app(CalculateGameBalance::class)->calculate($this->participant->fresh()))->toBe(300);
+        ->and(app(CalculatePlayerBalance::class)->calculate($this->player, '2026-10-24'))->toBe(250);
     $this->actingAs($this->admin)->get(route('cashouts.corrections', $this->cashout))->assertInertia(fn (Assert $page) => $page
         ->where('source', 'automatic')->has('revisions', 2)->where('revisions.1.revision', 2));
 });
