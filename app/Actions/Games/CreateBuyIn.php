@@ -6,6 +6,7 @@ use App\Models\BuyIn;
 use App\Models\GameSession;
 use App\Models\Player;
 use App\Models\PlayerGame;
+use App\Models\PlayerGameVisit;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
@@ -34,12 +35,10 @@ class CreateBuyIn
             $cash,
             $credit,
         ) {
-            $game = GameSession::query()
-                ->where('id', $gameSession->id)
-                ->lockForUpdate()
-                ->firstOrFail();
+            $game = $this->lockGame($gameSession);
 
-            $this->validateAmounts($game, $cash, $credit);
+            $this->validateAmounts($cash, $credit);
+            $this->ensureTotalMeetsGameLimits($game, $cash + $credit);
 
             $participant = $this->createPlayerGame->create(
                 $game,
@@ -47,7 +46,8 @@ class CreateBuyIn
                 $admin,
             );
 
-            $this->saveBuyInRecords($participant, $cash, $credit, $admin);
+            $visit = $this->findOrCreateFirstVisit($participant, $admin);
+            $this->saveBuyInRecords($participant, $visit, $cash, $credit, $admin);
 
             $this->subtractCreditFromBalance($participant, $credit);
 
@@ -56,11 +56,9 @@ class CreateBuyIn
     }
 
     private function validateAmounts(
-        GameSession $game,
         int $cash,
         int $credit,
     ): void {
-
         $amounts = [
             'cash_amount' => $cash,
             'credit_amount' => $credit,
@@ -73,9 +71,10 @@ class CreateBuyIn
                 ]);
             }
         }
+    }
 
-        $total = $cash + $credit;
-
+    private function ensureTotalMeetsGameLimits(GameSession $game, int $total): void
+    {
         if ($total < $game->min_buy_in || $total > $game->max_buy_in) {
             throw ValidationException::withMessages([
                 'buy_in_total' => "The combined cash and credit amount must be between \${$game->min_buy_in} and \${$game->max_buy_in}.",
@@ -91,31 +90,60 @@ class CreateBuyIn
             return;
         }
 
-        $player = $participant->player()
-            ->lockForUpdate()
-            ->firstOrFail();
+        $player = $this->lockParticipantPlayer($participant);
+        $this->ensureCreditFitsBalance($player->balance, $credit);
+        $this->subtractCredit($player, $credit);
+    }
 
+    private function ensureCreditFitsBalance(int $currentBalance, int $credit): void
+    {
         $lowestStartingBalance = PHP_INT_MIN + $credit;
 
-        if ($player->balance < $lowestStartingBalance) {
+        if ($currentBalance < $lowestStartingBalance) {
             throw ValidationException::withMessages([
                 'credit_amount' => 'This credit buy-in would exceed the supported balance range.',
             ]);
         }
+    }
 
+    private function subtractCredit(Player $player, int $credit): void
+    {
         $player->decrement('balance', $credit);
     }
 
-    private function saveBuyInRecords(PlayerGame $participant, int $cash, int $credit, User $admin): void
+    private function lockGame(GameSession $gameSession): GameSession
     {
-        $visit = $participant->visits()->firstOrCreate(
+        return GameSession::query()
+            ->whereKey($gameSession->id)
+            ->lockForUpdate()
+            ->firstOrFail();
+    }
+
+    private function lockParticipantPlayer(PlayerGame $participant): Player
+    {
+        return $participant->player()
+            ->lockForUpdate()
+            ->firstOrFail();
+    }
+
+    private function findOrCreateFirstVisit(PlayerGame $participant, User $admin): PlayerGameVisit
+    {
+        return $participant->visits()->firstOrCreate(
             ['visit_number' => 1],
             [
                 'opened_at' => now(),
                 'created_by' => $admin->id,
             ],
         );
+    }
 
+    private function saveBuyInRecords(
+        PlayerGame $participant,
+        PlayerGameVisit $visit,
+        int $cash,
+        int $credit,
+        User $admin,
+    ): void {
         $submissionId = (string) Str::uuid();
 
         $buyInAmounts = [

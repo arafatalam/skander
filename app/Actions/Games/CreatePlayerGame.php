@@ -14,21 +14,14 @@ class CreatePlayerGame
 {
     public function create(GameSession $gameSession, Player $player, User $admin): PlayerGame
     {
-
         Gate::forUser($admin)->authorize('create', PlayerGame::class);
 
         return DB::transaction(function () use ($gameSession, $player, $admin) {
-            $game = GameSession::query()
-                ->where('id', $gameSession->id)
-                ->lockForUpdate()
-                ->firstOrFail();
+            $game = $this->lockGame($gameSession);
 
             $this->ensureGameIsOpen($game);
 
-            $currentPlayer = Player::query()
-                ->where('id', $player->id)
-                ->lockForUpdate()
-                ->firstOrFail();
+            $currentPlayer = $this->lockPlayer($player);
 
             $existingRecord = $this->findExistingParticipant($currentPlayer, $game);
 
@@ -38,13 +31,34 @@ class CreatePlayerGame
 
             $this->ensurePlayerHasNoOtherOpenGame($currentPlayer, $game);
 
-            return PlayerGame::create([
-                'player_id' => $currentPlayer->id,
-                'game_session_id' => $game->id,
-                'opening_balance' => $currentPlayer->balance,
-                'created_by' => $admin->id,
-            ]);
+            return $this->saveParticipant($currentPlayer, $game, $admin);
         });
+    }
+
+    private function lockGame(GameSession $gameSession): GameSession
+    {
+        return GameSession::query()
+            ->whereKey($gameSession->id)
+            ->lockForUpdate()
+            ->firstOrFail();
+    }
+
+    private function lockPlayer(Player $player): Player
+    {
+        return Player::query()
+            ->whereKey($player->id)
+            ->lockForUpdate()
+            ->firstOrFail();
+    }
+
+    private function saveParticipant(Player $player, GameSession $game, User $admin): PlayerGame
+    {
+        return PlayerGame::create([
+            'player_id' => $player->id,
+            'game_session_id' => $game->id,
+            'opening_balance' => $player->balance,
+            'created_by' => $admin->id,
+        ]);
     }
 
     private function ensurePlayerHasNoOtherOpenGame(Player $player, GameSession $game): void
