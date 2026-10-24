@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Actions\Games\CalculateGameBalance;
 use App\Models\PlayerGame;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -42,20 +43,11 @@ class PlayerGameController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(PlayerGame $playerGame): Response
+    public function show(PlayerGame $playerGame, CalculateGameBalance $calculateGameBalance): Response
     {
         $playerGame->load(['player', 'gameSession']);
 
-        $balance = $playerGame->opening_balance;
-        $amount = '$'.number_format(abs($balance));
-
-        if ($balance > 0) {
-            $openingBalanceLabel = 'House owes player '.$amount;
-        } elseif ($balance < 0) {
-            $openingBalanceLabel = 'Player owes house '.$amount;
-        } else {
-            $openingBalanceLabel = 'Nothing owed';
-        }
+        $gameBalance = $calculateGameBalance->calculate($playerGame);
 
         return Inertia::render('player-games/Show', [
             'playerGame' => [
@@ -63,9 +55,25 @@ class PlayerGameController extends Controller
                 'player_name' => $playerGame->player->name,
                 'game_name' => $playerGame->gameSession->game_name,
                 'opening_balance' => $playerGame->opening_balance,
-                'opening_balance_label' => $openingBalanceLabel,
+                'opening_balance_label' => $this->balanceLabel($playerGame->opening_balance),
+                'game_balance_label' => $this->balanceLabel($gameBalance),
             ],
         ]);
+    }
+
+    private function balanceLabel(int $balance): string
+    {
+        $amount = '$'.number_format(abs($balance));
+
+        if ($balance > 0) {
+            return 'House owes player '.$amount;
+        }
+
+        if ($balance < 0) {
+            return 'Player owes house '.$amount;
+        }
+
+        return 'Nothing owed';
     }
 
     /**

@@ -11,6 +11,7 @@ defineProps<{
         game_name: string;
         opening_balance: number;
         opening_balance_label: string;
+        game_balance_label: string;
     };
 }>();
 </script>
@@ -24,21 +25,40 @@ defineProps<{
             :description="playerGame.game_name"
         />
 
-        <section
-            class="max-w-xl rounded-xl border border-sidebar-border/70 bg-card p-6"
-        >
-            <h2 class="text-sm font-medium text-muted-foreground">
-                Opening balance
-            </h2>
+        <div class="grid max-w-4xl gap-4 md:grid-cols-2">
+            <section
+                class="min-w-0 rounded-xl border border-sidebar-border/70 bg-card p-6"
+            >
+                <h2 class="text-sm font-medium text-muted-foreground">
+                    Opening balance
+                </h2>
 
-            <p class="mt-2 text-xl font-semibold">
-                {{ playerGame.opening_balance_label }}
-            </p>
+                <p class="mt-2 text-xl font-semibold">
+                    {{ playerGame.opening_balance_label }}
+                </p>
 
-            <p class="mt-2 text-sm text-muted-foreground">
-                Balance carried into this game from earlier activity.
-            </p>
-        </section>
+                <p class="mt-2 text-sm text-muted-foreground">
+                    Balance carried into this game from earlier activity.
+                </p>
+            </section>
+
+            <section
+                class="min-w-0 rounded-xl border border-sidebar-border/70 bg-card p-6"
+            >
+                <h2 class="text-sm font-medium text-muted-foreground">
+                    Game balance
+                </h2>
+
+                <p class="mt-2 text-xl font-semibold">
+                    {{ playerGame.game_balance_label }}
+                </p>
+
+                <p class="mt-2 text-sm text-muted-foreground">
+                    Opening balance adjusted for all recorded credit buy-ins and
+                    cashouts in this game. Includes every visit.
+                </p>
+            </section>
+        </div>
 
         <div>
             <Button variant="outline" as-child>
