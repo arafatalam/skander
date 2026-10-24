@@ -12,6 +12,9 @@ class GetGameDetails
         private readonly CalculateGameBalance $calculateGameBalance,
     ) {}
 
+    /**
+     * @return array<string, mixed>
+     */
     public function get(GameSession $gameSession): array
     {
         $gameSession->load(
@@ -34,6 +37,9 @@ class GetGameDetails
         ];
     }
 
+    /**
+     * @return array{buy_ins: int, ending_chips: int, cash_paid: int}
+     */
     private function gameTotals(GameSession $gameSession): array
     {
         $buyIns = $gameSession->playerGames
@@ -51,6 +57,9 @@ class GetGameDetails
         ];
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     private function playerDetails(PlayerGame $playerGame): array
     {
         return [
@@ -64,6 +73,9 @@ class GetGameDetails
         ];
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     private function visitDetails(PlayerGameVisit $visit): array
     {
         return [

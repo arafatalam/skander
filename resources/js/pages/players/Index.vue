@@ -103,7 +103,14 @@ function clearSearch() {
                         :key="player.id"
                         class="border-b last:border-0"
                     >
-                        <td class="px-4 py-3 font-medium">{{ player.name }}</td>
+                        <td class="px-4 py-3 font-medium">
+                            <Link
+                                :href="PlayerController.show(player.id)"
+                                class="rounded-sm underline underline-offset-4 focus-visible:outline-2 focus-visible:outline-ring"
+                            >
+                                {{ player.name }}
+                            </Link>
+                        </td>
                         <td class="px-4 py-3">
                             {{ player.phone || '—' }}
                         </td>
