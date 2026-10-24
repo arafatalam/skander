@@ -46,6 +46,7 @@ defineProps<{
                         <th class="px-4 py-3 text-right font-medium">
                             Maximum buy-in
                         </th>
+                        <th class="px-4 py-3 font-medium">Actions</th>
                     </tr>
                 </thead>
 
@@ -80,11 +81,25 @@ defineProps<{
                         >
                             ${{ game.max_buy_in.toLocaleString('en-US') }}
                         </td>
+                        <td class="px-4 py-3">
+                            <Button variant="outline" size="sm" as-child>
+                                <Link
+                                    :href="
+                                        GameSessionController.editTotals(
+                                            game.id,
+                                        )
+                                    "
+                                    :aria-label="`Record totals for ${game.game_name}`"
+                                >
+                                    Record totals
+                                </Link>
+                            </Button>
+                        </td>
                     </tr>
 
                     <tr v-if="games.length === 0">
                         <td
-                            colspan="4"
+                            colspan="5"
                             class="px-4 py-8 text-center text-muted-foreground"
                         >
                             No games have been created yet.

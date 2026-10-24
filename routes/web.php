@@ -33,6 +33,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     });
 
     Route::prefix('games')->group(function () {
+
         Route::get('/', [GameSessionController::class, 'index'])
             ->name('games.index')
             ->can('viewAny', GameSession::class);
@@ -44,6 +45,15 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::post('/', [GameSessionController::class, 'store'])
             ->name('games.store')
             ->can('create', GameSession::class);
+
+        Route::get('{gameSession}/totals', [GameSessionController::class, 'editTotals'])
+            ->name('games.totals.edit')
+            ->can('recordTotals', 'gameSession');
+
+        Route::post('{gameSession}/totals', [GameSessionController::class, 'recordTotals'])
+            ->name('games.totals.store')
+            ->can('recordTotals', 'gameSession');
+
     });
 
     Route::get('player-games/{playerGame}', [PlayerGameController::class, 'show'])

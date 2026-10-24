@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Actions\Games\CreateGameSession;
+use App\Actions\Games\RecordGameTotals;
+use App\Http\Requests\Games\RecordGameTotalsRequest;
 use App\Http\Requests\Games\StoreGameSessionRequest;
 use App\Models\GameSession;
 use App\Models\GameSetting;
@@ -83,6 +85,43 @@ class GameSessionController extends Controller
         Inertia::flash('toast', [
             'type' => 'success',
             'message' => 'Game '.$game->game_name.' created successfully.',
+        ]);
+
+        return back();
+    }
+
+    public function editTotals(GameSession $gameSession): Response
+    {
+        return Inertia::render('games/Totals', [
+            'game' => [
+                'id' => $gameSession->id,
+                'game_name' => $gameSession->game_name,
+                'total_tips' => $gameSession->total_tips,
+                'total_cost' => $gameSession->total_cost,
+            ],
+        ]);
+    }
+
+    public function recordTotals(
+        RecordGameTotalsRequest $request,
+        GameSession $gameSession,
+        RecordGameTotals $action,
+    ): RedirectResponse {
+        $validated = $request->validated();
+
+        $tips = $validated['total_tips'] ?? null;
+        $cost = $validated['total_cost'] ?? null;
+
+        $action->record(
+            $gameSession,
+            $request->user(),
+            $tips === null ? null : (int) $tips,
+            $cost === null ? null : (int) $cost,
+        );
+
+        Inertia::flash('toast', [
+            'type' => 'success',
+            'message' => 'Game totals recorded successfully.',
         ]);
 
         return back();
