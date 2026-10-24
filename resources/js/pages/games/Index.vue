@@ -57,7 +57,12 @@ defineProps<{
                         class="border-b last:border-0"
                     >
                         <td class="px-4 py-3 font-medium">
-                            {{ game.game_name }}
+                            <Link
+                                :href="GameSessionController.show(game.id)"
+                                class="hover:underline"
+                            >
+                                {{ game.game_name }}
+                            </Link>
                         </td>
 
                         <td class="px-4 py-3">

@@ -54,6 +54,14 @@ Route::middleware(['auth', 'verified'])->group(function () {
             ->name('games.totals.store')
             ->can('recordTotals', 'gameSession');
 
+        Route::post('{gameSession}/close', [GameSessionController::class, 'close'])
+            ->name('games.close')
+            ->can('close', 'gameSession');
+
+        Route::get('{gameSession}', [GameSessionController::class, 'show'])
+            ->name('games.show')
+            ->can('view', 'gameSession');
+
     });
 
     Route::get('player-games/{playerGame}', [PlayerGameController::class, 'show'])

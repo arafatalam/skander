@@ -31,6 +31,11 @@ class GameSessionPolicy
         return $user->role === 'admin';
     }
 
+    public function close(User $user, GameSession $gameSession): bool
+    {
+        return $user->role === 'admin';
+    }
+
     public function recordTotals(User $user, GameSession $gameSession): bool
     {
         return $user->role === 'admin';

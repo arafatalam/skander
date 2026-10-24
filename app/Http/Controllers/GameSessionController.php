@@ -2,7 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Actions\Games\CloseGameSession;
 use App\Actions\Games\CreateGameSession;
+use App\Actions\Games\GetGameDetails;
 use App\Actions\Games\RecordGameTotals;
 use App\Http\Requests\Games\RecordGameTotalsRequest;
 use App\Http\Requests\Games\StoreGameSessionRequest;
@@ -130,16 +132,26 @@ class GameSessionController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(GameSession $gameSession): Response
+    public function show(GameSession $gameSession, GetGameDetails $getGameDetails): Response
     {
         return Inertia::render('games/Show', [
-            'game' => [
-                'id' => $gameSession->id,
-                'game_date' => $gameSession->game_date->format('Y-m-d'),
-                'game_name' => $gameSession->game_name,
-                'status' => $gameSession->status,
-            ],
+            'game' => $getGameDetails->get($gameSession),
         ]);
+    }
+
+    public function close(
+        Request $request,
+        GameSession $gameSession,
+        CloseGameSession $action,
+    ): RedirectResponse {
+        $game = $action->close($gameSession, $request->user());
+
+        Inertia::flash('toast', [
+            'type' => 'success',
+            'message' => 'Game '.$game->game_name.' is closed.',
+        ]);
+
+        return to_route('games.show', $game);
     }
 
     /**
