@@ -11,6 +11,8 @@ class PlayerGameController extends Controller
 {
     /**
      * Display a listing of the resource.
+     *
+     * @return void
      */
     public function index()
     {
@@ -19,6 +21,8 @@ class PlayerGameController extends Controller
 
     /**
      * Show the form for creating a new resource.
+     *
+     * @return void
      */
     public function create()
     {
@@ -27,6 +31,8 @@ class PlayerGameController extends Controller
 
     /**
      * Store a newly created resource in storage.
+     *
+     * @return void
      */
     public function store(Request $request)
     {
@@ -64,6 +70,8 @@ class PlayerGameController extends Controller
 
     /**
      * Show the form for editing the specified resource.
+     *
+     * @return void
      */
     public function edit(PlayerGame $playerGame)
     {
@@ -72,6 +80,8 @@ class PlayerGameController extends Controller
 
     /**
      * Update the specified resource in storage.
+     *
+     * @return void
      */
     public function update(Request $request, PlayerGame $playerGame)
     {
@@ -80,6 +90,8 @@ class PlayerGameController extends Controller
 
     /**
      * Remove the specified resource from storage.
+     *
+     * @return void
      */
     public function destroy(PlayerGame $playerGame)
     {

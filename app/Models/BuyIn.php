@@ -22,11 +22,17 @@ class BuyIn extends Model
         ];
     }
 
+    /**
+     * @return BelongsTo<PlayerGame, $this>
+     */
     public function playerGame(): BelongsTo
     {
         return $this->belongsTo(PlayerGame::class);
     }
 
+    /**
+     * @return BelongsTo<User, $this>
+     */
     public function createdBy(): BelongsTo
     {
         return $this->belongsTo(User::class, 'created_by');

@@ -105,6 +105,8 @@ class GameSessionController extends Controller
 
     /**
      * Show the form for editing the specified resource.
+     *
+     * @return void
      */
     public function edit(GameSession $gameSession)
     {
@@ -113,6 +115,8 @@ class GameSessionController extends Controller
 
     /**
      * Update the specified resource in storage.
+     *
+     * @return void
      */
     public function update(Request $request, GameSession $gameSession)
     {
@@ -121,6 +125,8 @@ class GameSessionController extends Controller
 
     /**
      * Remove the specified resource from storage.
+     *
+     * @return void
      */
     public function destroy(GameSession $gameSession)
     {

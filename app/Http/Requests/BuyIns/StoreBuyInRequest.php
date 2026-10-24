@@ -32,6 +32,9 @@ class StoreBuyInRequest extends FormRequest
         ];
     }
 
+    /**
+     * @return array<\Closure(Validator): void>
+     */
     public function after(): array
     {
         return [

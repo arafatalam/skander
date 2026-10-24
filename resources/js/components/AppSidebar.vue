@@ -4,12 +4,14 @@ import AppLogo from '@/components/AppLogo.vue';
 import NavFooter from '@/components/NavFooter.vue';
 import NavMain from '@/components/NavMain.vue';
 import NavUser from '@/components/NavUser.vue';
+import BuyInController from '@/actions/App/Http/Controllers/BuyInController';
 import GameSessionController from '@/actions/App/Http/Controllers/GameSessionController';
 import PlayerController from '@/actions/App/Http/Controllers/PlayerController';
 import GameSettingController from '@/actions/App/Http/Controllers/GameSettingController';
 
 import {
     BookOpen,
+    Banknote,
     CalendarDays,
     CalendarPlus,
     FolderGit2,
@@ -45,6 +47,11 @@ const mainNavItems: NavItem[] = [
         title: 'Create game',
         href: GameSessionController.create(),
         icon: CalendarPlus,
+    },
+    {
+        title: 'Record buy-in',
+        href: BuyInController.create(),
+        icon: Banknote,
     },
     {
         title: 'Game settings',

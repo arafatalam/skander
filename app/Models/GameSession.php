@@ -2,10 +2,14 @@
 
 namespace App\Models;
 
+use Carbon\CarbonInterface;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
+/**
+ * @property-read CarbonInterface $game_date
+ */
 class GameSession extends Model
 {
     protected $fillable = [
@@ -30,16 +34,25 @@ class GameSession extends Model
         ];
     }
 
+    /**
+     * @return BelongsTo<User, $this>
+     */
     public function createdBy(): BelongsTo
     {
         return $this->belongsTo(User::class, 'created_by');
     }
 
+    /**
+     * @return BelongsTo<User, $this>
+     */
     public function closedBy(): BelongsTo
     {
         return $this->belongsTo(User::class, 'closed_by');
     }
 
+    /**
+     * @return HasMany<PlayerGame, $this>
+     */
     public function playerGames(): HasMany
     {
         return $this->hasMany(PlayerGame::class);

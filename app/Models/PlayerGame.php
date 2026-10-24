@@ -22,16 +22,25 @@ class PlayerGame extends Model
         ];
     }
 
+    /**
+     * @return BelongsTo<Player, $this>
+     */
     public function player(): BelongsTo
     {
         return $this->belongsTo(Player::class);
     }
 
+    /**
+     * @return BelongsTo<GameSession, $this>
+     */
     public function gameSession(): BelongsTo
     {
         return $this->belongsTo(GameSession::class);
     }
 
+    /**
+     * @return BelongsTo<User, $this>
+     */
     public function createdBy(): BelongsTo
     {
         return $this->belongsTo(User::class, 'created_by');

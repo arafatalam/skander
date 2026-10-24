@@ -63,6 +63,8 @@ class PlayerController extends Controller
 
     /**
      * Display the specified resource.
+     *
+     * @return void
      */
     public function show(Player $player)
     {
@@ -71,6 +73,8 @@ class PlayerController extends Controller
 
     /**
      * Show the form for editing the specified resource.
+     *
+     * @return void
      */
     public function edit(Player $player)
     {
@@ -79,6 +83,8 @@ class PlayerController extends Controller
 
     /**
      * Update the specified resource in storage.
+     *
+     * @return void
      */
     public function update(Request $request, Player $player)
     {
@@ -87,6 +93,8 @@ class PlayerController extends Controller
 
     /**
      * Remove the specified resource from storage.
+     *
+     * @return void
      */
     public function destroy(Player $player)
     {

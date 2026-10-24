@@ -16,6 +16,8 @@ class BuyInController extends Controller
 {
     /**
      * Display a listing of the resource.
+     *
+     * @return void
      */
     public function index()
     {
@@ -57,10 +59,10 @@ class BuyInController extends Controller
     public function store(StoreBuyInRequest $request, CreateBuyIn $action): RedirectResponse
     {
         $game = GameSession::query()
-            ->findOrFail($request->validated('game_session_id'));
+            ->findOrFail($request->integer('game_session_id'));
 
         $player = Player::query()
-            ->findOrFail($request->validated('player_id'));
+            ->findOrFail($request->integer('player_id'));
 
         $participant = $action->create(
             $game,
@@ -82,6 +84,8 @@ class BuyInController extends Controller
 
     /**
      * Display the specified resource.
+     *
+     * @return void
      */
     public function show(BuyIn $buyIn)
     {
@@ -90,6 +94,8 @@ class BuyInController extends Controller
 
     /**
      * Show the form for editing the specified resource.
+     *
+     * @return void
      */
     public function edit(BuyIn $buyIn)
     {
@@ -98,6 +104,8 @@ class BuyInController extends Controller
 
     /**
      * Update the specified resource in storage.
+     *
+     * @return void
      */
     public function update(Request $request, BuyIn $buyIn)
     {
@@ -106,6 +114,8 @@ class BuyInController extends Controller
 
     /**
      * Remove the specified resource from storage.
+     *
+     * @return void
      */
     public function destroy(BuyIn $buyIn)
     {

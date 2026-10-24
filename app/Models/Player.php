@@ -21,6 +21,9 @@ class Player extends Model
         ];
     }
 
+    /**
+     * @return HasMany<PlayerGame, $this>
+     */
     public function playerGames(): HasMany
     {
         return $this->hasMany(PlayerGame::class);
