@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Actions\Players\DeactivatePlayer;
 use App\Actions\Players\GetPlayerHistory;
+use App\Actions\Players\ListPlayers;
+use App\Http\Requests\Players\IndexPlayersRequest;
 use App\Http\Requests\Players\StorePlayerRequest;
 use App\Http\Requests\Players\UpdatePlayerRequest;
 use App\Models\Player;
@@ -17,27 +19,14 @@ class PlayerController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index(Request $request): Response
+    public function index(IndexPlayersRequest $request, ListPlayers $action): Response
     {
-        $search = $request->validate([
-            'search' => ['nullable', 'string', 'max:255'],
-        ])['search'] ?? '';
-
-        // TODO Revisit this following block of code
-        $players = Player::query()
-            ->when($search !== '', function ($query) use ($search) {
-                $query->where(function ($query) use ($search) {
-                    $query->where('name', 'like', "%{$search}%")
-                        ->orWhere('phone', 'like', "%{$search}%")
-                        ->orWhere('email', 'like', "%{$search}%");
-                });
-            })
-            ->orderBy('name')
-            ->get(['id', 'name', 'phone', 'email', 'is_active']);
+        $filters = $request->safe()->only(['search', 'owing']);
 
         return Inertia::render('players/Index', [
-            'players' => $players,
-            'search' => $search,
+            'players' => $action->get($filters),
+            'search' => $filters['search'] ?? '',
+            'owing' => $filters['owing'] ?? 'all',
         ]);
     }
 
@@ -68,12 +57,18 @@ class PlayerController extends Controller
      * Display the player's history page.
      */
     public function show(
+        IndexPlayersRequest $request,
         Player $player,
         GetPlayerHistory $getPlayerHistory,
     ): Response {
         return Inertia::render(
             'players/Show',
-            $getPlayerHistory->get($player),
+            [
+                ...$getPlayerHistory->get($player),
+                'backUrl' => $request->validated('from') === 'dashboard'
+                    ? route('dashboard') : route('players', $request->safe()->only(['search', 'owing', 'page'])),
+                'backLabel' => $request->validated('from') === 'dashboard' ? 'Back to dashboard' : 'Back to players',
+            ],
         );
     }
 

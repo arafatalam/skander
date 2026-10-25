@@ -44,7 +44,7 @@ test('deactivation preserves all history and removes only the buy-in choice', fu
     }
     $this->get(route('players.show', $this->player))->assertInertia(fn (Assert $page) => $page
         ->component('players/Show')->where('player.is_active', false)->has('games', 1)->has('payments', 1));
-    $this->get(route('players'))->assertInertia(fn (Assert $page) => $page->has('players', 1)->where('players.0.is_active', false));
+    $this->get(route('players'))->assertInertia(fn (Assert $page) => $page->has('players.data', 1)->where('players.data.0.is_active', false));
     $this->get(route('buy-ins.create'))->assertInertia(fn (Assert $page) => $page->has('players', 0));
     $this->get(route('payments.create'))->assertInertia(fn (Assert $page) => $page->has('players', 1));
 });

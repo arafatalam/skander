@@ -69,6 +69,8 @@ defineProps<{
         balance_label: string;
         is_active: boolean;
     };
+    backUrl: string;
+    backLabel: string;
     games: Game[];
     payments: Payment[];
 }>();
@@ -105,9 +107,7 @@ function formatPaymentDate(value: string): string {
             />
             <div class="flex flex-wrap gap-2">
                 <Button variant="outline" as-child>
-                    <Link :href="PlayerController.index()"
-                        >Back to players</Link
-                    >
+                    <Link :href="backUrl">{{ backLabel }}</Link>
                 </Button>
                 <Button as-child>
                     <Link :href="PlayerController.edit(player.id)"

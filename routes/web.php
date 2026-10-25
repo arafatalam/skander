@@ -3,6 +3,7 @@
 use App\Http\Controllers\BuyInController;
 use App\Http\Controllers\CashoutController;
 use App\Http\Controllers\CorrectionHistoryController;
+use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\GameSessionController;
 use App\Http\Controllers\GameSettingController;
 use App\Http\Controllers\PaymentController;
@@ -21,7 +22,7 @@ use Illuminate\Support\Facades\Route;
 Route::inertia('/', 'Welcome')->name('home');
 
 Route::middleware(['auth', 'verified'])->group(function () {
-    Route::inertia('dashboard', 'Dashboard')->name('dashboard');
+    Route::get('dashboard', [DashboardController::class, 'index'])->name('dashboard')->can('viewDashboard');
 
     Route::get('record-correction', [RecordCorrectionController::class, 'index'])
         ->name('record-correction.index')

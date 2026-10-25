@@ -2,9 +2,11 @@
 
 namespace App\Providers;
 
+use App\Policies\DashboardPolicy;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Validation\Rules\Password;
 
@@ -23,6 +25,7 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        Gate::define('viewDashboard', [DashboardPolicy::class, 'view']);
         $this->configureDefaults();
     }
 
