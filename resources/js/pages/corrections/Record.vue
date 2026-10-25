@@ -144,7 +144,7 @@ const moneyFields = computed(() => {
         ];
     if (['cashout', 'missing_cashout'].includes(form.kind))
         return [
-            { key: 'ending_chips' as const, label: 'Ending chips ($)' },
+            { key: 'ending_chips' as const, label: 'Cashout ($)' },
             { key: 'cash_paid' as const, label: 'Cash paid at cashout ($)' },
         ];
     return [{ key: 'amount' as const, label: 'Amount ($)' }];

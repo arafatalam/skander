@@ -95,7 +95,7 @@ test('adds a previously absent cash or credit portion and preserves its original
         ->and(CorrectionSubmission::latest('id')->first()->warnings)->not->toBeEmpty();
 });
 
-test('corrects tips and costs separately including missing totals without affecting balances', function () {
+test('corrects default zero tips and costs separately without affecting balances', function () {
     app(CloseGameSession::class)->close($this->game, $this->admin);
     foreach (['total_tips', 'total_cost'] as $kind) {
         $this->record->record($this->admin, array_replace($this->data, ['kind' => $kind, 'amount' => 75, 'submission_id' => (string) Str::uuid()]));
@@ -103,7 +103,7 @@ test('corrects tips and costs separately including missing totals without affect
     expect($this->game->fresh()->total_tips)->toBe(75)->and($this->game->fresh()->total_cost)->toBe(75)
         ->and($this->player->fresh()->balance)->toBe(-100)
         ->and($this->game->totalCorrections()->count())->toBe(2)
-        ->and($this->game->totalCorrections()->first()->previous_amount)->toBeNull();
+        ->and($this->game->totalCorrections()->first()->previous_amount)->toBe(0);
 });
 
 test('missing payment accepts historical direction and date and shows in inline addition history', function () {
@@ -180,6 +180,7 @@ test('inserts a forgotten visit before an existing return without changing its m
 });
 
 test('missing cashout rejects automatic duplicate and allows correcting that original instead', function () {
+    app(CreateBuyIn::class)->create($this->game, $this->player, $this->admin, 200, 0);
     app(CloseGameSession::class)->close($this->game, $this->admin);
     $cashout = $this->visit->cashout()->firstOrFail();
     $input = array_replace($this->data, ['kind' => 'missing_cashout', 'visit_id' => $this->visit->id,

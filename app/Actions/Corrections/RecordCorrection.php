@@ -6,6 +6,7 @@ use App\Actions\Games\AddHistoricalActivity;
 use App\Actions\Games\CorrectBuyInGroup;
 use App\Actions\Games\CorrectCashout;
 use App\Actions\Games\CorrectGameTotal;
+use App\Actions\Games\EnsureNonNegativeGameIncome;
 use App\Actions\Payments\CorrectPayment;
 use App\Actions\Players\CalculatePlayerBalance;
 use App\Models\Cashout;
@@ -43,6 +44,9 @@ class RecordCorrection
                     return $existing;
                 }
                 $result = $this->apply($game, $player, $admin, $data);
+                if ($game !== null) {
+                    app(EnsureNonNegativeGameIncome::class)->ensure($game);
+                }
                 if ($player !== null) {
                     $player->balance = $this->balances->calculate($player);
                     $player->save();

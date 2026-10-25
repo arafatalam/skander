@@ -128,7 +128,7 @@ class GetCorrectionWorkspace
             'key' => 'cashout-'.$cashout->id, 'kind' => 'cashout', 'target_id' => $cashout->id,
             'title' => 'Visit '.$visitNumber.' · '.ucfirst($cashout->creation_method).' cashout',
             'visit_number' => $visitNumber, 'subtitle' => 'Recorded '.$cashout->created_at->toIso8601String(),
-            'values' => [$this->money('Ending chips', $cashout->ending_chips), $this->money('Cash paid', $cashout->cash_paid)],
+            'values' => [$this->money('Cashout', $cashout->ending_chips), $this->money('Cash paid', $cashout->cash_paid)],
             'inputs' => $cashout->only(['ending_chips', 'cash_paid']),
             'revision' => (int) $cashout->corrections()->max('revision'),
             'histories' => [$this->history->get($cashout)], 'additions' => $this->additions($additions, 'cashout', $cashout->id),

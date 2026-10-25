@@ -44,7 +44,7 @@ class GetCorrectionHistory
     {
         $fields = match (true) {
             $event instanceof BuyIn => ['amount' => 'Amount', 'type' => 'Buy-in type'],
-            $event instanceof Cashout => ['ending_chips' => 'Ending chips', 'cash_paid' => 'Cash paid'],
+            $event instanceof Cashout => ['ending_chips' => 'Cashout', 'cash_paid' => 'Cash paid'],
             default => ['amount' => 'Amount', 'direction' => 'Direction', 'paid_at' => 'Payment date', 'note' => 'Note'],
         };
         $player = match (true) {

@@ -5,7 +5,9 @@ namespace App\Http\Controllers;
 use App\Actions\Games\CloseGameSession;
 use App\Actions\Games\CreateGameSession;
 use App\Actions\Games\GetGameDetails;
+use App\Actions\Games\ListGameSessions;
 use App\Actions\Games\RecordGameTotals;
+use App\Http\Requests\Games\IndexGameSessionsRequest;
 use App\Http\Requests\Games\RecordGameTotalsRequest;
 use App\Http\Requests\Games\StoreGameSessionRequest;
 use App\Models\GameSession;
@@ -21,23 +23,13 @@ class GameSessionController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index(): Response
+    public function index(IndexGameSessionsRequest $request, ListGameSessions $action): Response
     {
-        $games = GameSession::query()
-            ->orderByDesc('game_date')
-            ->orderByDesc('game_number')
-            ->get([
-                'id',
-                'game_date',
-                'game_number',
-                'game_name',
-                'status',
-                'min_buy_in',
-                'max_buy_in',
-            ]);
+        $filters = $request->safe()->only(['from_date', 'to_date', 'status']);
 
         return Inertia::render('games/Index', [
-            'games' => $games,
+            'games' => $action->get($filters),
+            'filters' => $filters,
         ]);
     }
 
@@ -132,15 +124,17 @@ class GameSessionController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(GameSession $gameSession, GetGameDetails $getGameDetails): Response
+    public function show(IndexGameSessionsRequest $request, GameSession $gameSession, GetGameDetails $getGameDetails): Response
     {
         return Inertia::render('games/Show', [
             'game' => $getGameDetails->get($gameSession),
+            'backUrl' => route('games.index', $request->validated()),
+            'returnFilters' => $request->validated(),
         ]);
     }
 
     public function close(
-        Request $request,
+        IndexGameSessionsRequest $request,
         GameSession $gameSession,
         CloseGameSession $action,
     ): RedirectResponse {
@@ -151,7 +145,7 @@ class GameSessionController extends Controller
             'message' => 'Game '.$game->game_name.' is closed.',
         ]);
 
-        return to_route('games.show', $game);
+        return to_route('games.show', ['gameSession' => $game->id, ...$request->validated()]);
     }
 
     /**

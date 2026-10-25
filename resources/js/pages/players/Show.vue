@@ -349,9 +349,7 @@ function formatPaymentDate(value: string): string {
                         </p>
                         <dl class="grid gap-3 text-sm sm:grid-cols-2">
                             <div>
-                                <dt class="text-muted-foreground">
-                                    Ending chips
-                                </dt>
+                                <dt class="text-muted-foreground">Cashout</dt>
                                 <dd class="mt-1 font-medium tabular-nums">
                                     {{
                                         formatMoney(visit.cashout.ending_chips)

@@ -5,6 +5,7 @@ namespace App\Actions\Games;
 use App\Models\GameSession;
 use App\Models\User;
 use Carbon\CarbonInterface;
+use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 
@@ -14,7 +15,12 @@ class CloseGameSession
     {
         Gate::forUser($admin)->authorize('close', $gameSession);
 
-        return DB::transaction(function () use ($gameSession, $admin) {
+        $adminId = $admin->id;
+        if (! $admin->exists || $adminId < 1) {
+            throw new AuthorizationException('A saved Admin account is required to close a game.');
+        }
+
+        return DB::transaction(function () use ($gameSession, $admin, $adminId) {
             $game = $this->lockGame($gameSession);
 
             if ($game->status === 'closed') {
@@ -22,6 +28,16 @@ class CloseGameSession
             }
 
             $closedAt = now();
+
+            app(EnsureNonNegativeGameIncome::class)->ensure($game, closing: true);
+
+            foreach (['tips', 'cost'] as $kind) {
+                if ($game->{'total_'.$kind} === null) {
+                    $game->{'total_'.$kind} = 0;
+                    $game->{$kind.'_recorded_by'} = $adminId;
+                    $game->{$kind.'_recorded_at'} = $closedAt;
+                }
+            }
 
             $this->recordAutomaticCashouts($game, $admin, $closedAt);
             $this->markClosed($game, $admin, $closedAt);

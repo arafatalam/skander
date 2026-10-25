@@ -23,6 +23,8 @@ beforeEach(function () {
         'status' => 'open', 'min_buy_in' => 100, 'max_buy_in' => 500, 'created_by' => $this->admin->id,
     ]);
     $this->participant = app(CreateBuyIn::class)->create($this->game, $this->player, $this->admin, 100, 0);
+    // Other players fund the chips won by this player.
+    app(CreateBuyIn::class)->create($this->game, Player::create(['name' => 'Other player']), $this->admin, 400, 0);
     $this->visit = $this->participant->visits()->firstOrFail();
     $this->input = [
         'ending_chips' => 500, 'cash_paid' => 300, 'reason' => 'Correct forgotten cashout',
@@ -97,7 +99,7 @@ test('preserves a mixed return and topups and prepends a mismatch warning to the
         ->and($this->action->correct($cashout, $this->admin, $input)->id)->toBe($correction->id)
         ->and(CashoutCorrection::count())->toBe(1);
     if ($warn) {
-        expect($correction->reason)->toStartWith('Warning: Corrected ending chips $')
+        expect($correction->reason)->toStartWith('Warning: Corrected cashout $')
             ->toContain('The recorded $300 return buy-in is unchanged.')
             ->toEndWith("\n\n".$input['reason']);
         if ($chips > 500) {

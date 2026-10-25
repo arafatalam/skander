@@ -37,7 +37,7 @@ defineProps<{
                 This cashout was recorded automatically when the game closed.
             </p>
             <p>
-                Correct the ending chips and cash paid at this cashout. The
+                Correct the cashout amount and cash paid at this cashout. The
                 original values and your reason will remain in correction
                 history. A closed game will stay closed.
             </p>
@@ -56,11 +56,12 @@ defineProps<{
             <InputError :message="errors.submission_id" />
             <InputError :message="errors.revision" />
             <InputError :message="errors.balance" />
+            <InputError :message="errors.income" />
 
             <fieldset :disabled="processing" class="space-y-6">
                 <div class="grid items-start gap-4 sm:grid-cols-2">
                     <div class="grid gap-2">
-                        <Label for="ending_chips">Ending chips ($)</Label>
+                        <Label for="ending_chips">Cashout ($)</Label>
                         <Input
                             id="ending_chips"
                             name="ending_chips"

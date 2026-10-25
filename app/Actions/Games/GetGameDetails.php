@@ -11,6 +11,7 @@ class GetGameDetails
 {
     public function __construct(
         private readonly CalculatePlayerBalance $calculatePlayerBalance,
+        private readonly GetGameTotals $totals,
     ) {}
 
     /**
@@ -31,30 +32,10 @@ class GetGameDetails
             'status' => $gameSession->status,
             'total_tips' => $gameSession->total_tips,
             'total_cost' => $gameSession->total_cost,
-            'totals' => $this->gameTotals($gameSession),
+            'totals' => $this->totals->get($gameSession),
             'players' => $gameSession->playerGames->map(
                 fn (PlayerGame $playerGame) => $this->playerDetails($playerGame),
             ),
-        ];
-    }
-
-    /**
-     * @return array{buy_ins: int, ending_chips: int, cash_paid: int}
-     */
-    private function gameTotals(GameSession $gameSession): array
-    {
-        $buyIns = $gameSession->playerGames
-            ->flatMap(fn (PlayerGame $playerGame) => $playerGame->buyIns);
-
-        $cashouts = $gameSession->playerGames
-            ->flatMap(fn (PlayerGame $playerGame) => $playerGame->visits)
-            ->map(fn (PlayerGameVisit $visit) => $visit->cashout)
-            ->filter();
-
-        return [
-            'buy_ins' => (int) $buyIns->sum('amount'),
-            'ending_chips' => (int) $cashouts->sum('ending_chips'),
-            'cash_paid' => (int) $cashouts->sum('cash_paid'),
         ];
     }
 

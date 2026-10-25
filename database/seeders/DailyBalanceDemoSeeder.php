@@ -45,7 +45,7 @@ class DailyBalanceDemoSeeder extends Seeder
                     ]);
                     foreach ($players as $index => $player) {
                         $credit = $day === 5 || $day === 0 ? 200 : 0;
-                        $participant = app(CreateBuyIn::class)->create($game, $player, $admin, $credit === 0 ? 100 : 0, $credit);
+                        $participant = app(CreateBuyIn::class)->create($game, $player, $admin, $credit === 0 ? 300 : 200, $credit);
                         if ($day === 0) {
                             continue; // One open game for testing additional activity.
                         }

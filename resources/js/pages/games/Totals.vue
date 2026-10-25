@@ -35,6 +35,8 @@ defineProps<{
                 unknown amount blank; enter 0 to record zero.
             </p>
 
+            <InputError :message="errors.income" />
+
             <div class="grid gap-2">
                 <template v-if="game.total_tips === null">
                     <Label for="total_tips">Total tips ($)</Label>

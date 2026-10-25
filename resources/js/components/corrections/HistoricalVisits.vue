@@ -88,7 +88,7 @@ const addVisit = () =>
             >
             <div class="grid gap-4 sm:grid-cols-2">
                 <div class="grid gap-2">
-                    <Label :for="`chips-${index}`">Ending chips ($)</Label>
+                    <Label :for="`chips-${index}`">Cashout ($)</Label>
                     <Input
                         :id="`chips-${index}`"
                         v-model="visit.ending_chips"

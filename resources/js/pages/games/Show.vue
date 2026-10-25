@@ -49,6 +49,8 @@ function balanceLabel(balance: number): string {
 }
 
 defineProps<{
+    backUrl: string;
+    returnFilters: Record<string, string | number | null>;
     game: {
         id: number;
         game_name: string;
@@ -59,6 +61,7 @@ defineProps<{
             buy_ins: number;
             ending_chips: number;
             cash_paid: number;
+            income: number | null;
         };
         players: Player[];
     };
@@ -69,6 +72,7 @@ defineProps<{
     <Head :title="game.game_name" />
 
     <main class="flex min-w-0 flex-1 flex-col gap-6 p-4 sm:p-6">
+        <Link :href="backUrl" class="text-sm underline">Back to games</Link>
         <Heading
             :title="game.game_name"
             :description="game.status === 'open' ? 'Open game' : 'Closed game'"
@@ -85,22 +89,26 @@ defineProps<{
                         <DialogTitle>Close {{ game.game_name }}?</DialogTitle>
                         <DialogDescription>
                             Each player still playing will receive an automatic
-                            cashout of $0 ending chips and $0 cash paid for
-                            their open visit. Existing cashouts and player
-                            balances will stay unchanged. Closing stops new
-                            buy-ins and ordinary cashouts in this game.
+                            cashout of $0 and $0 cash paid for their open visit.
+                            Existing cashouts and player balances will stay
+                            unchanged. Closing stops new buy-ins and ordinary
+                            cashouts in this game.
                         </DialogDescription>
                     </DialogHeader>
 
                     <Form
-                        v-bind="GameSessionController.close.form(game.id)"
+                        v-bind="
+                            GameSessionController.close.form(game.id, {
+                                query: returnFilters,
+                            })
+                        "
                         v-slot="{ errors, processing }"
                         @success="confirmationOpen = false"
                         class="space-y-4"
                     >
                         <p class="text-sm text-muted-foreground">
-                            Record any actual ending chips and cash paid before
-                            closing.
+                            Record any actual cashout amount and cash paid
+                            before closing.
                         </p>
                         <ul
                             v-if="Object.keys(errors).length"
@@ -140,6 +148,12 @@ defineProps<{
 
         <div class="flex flex-wrap gap-4 text-sm">
             <Link
+                v-if="game.total_tips === null || game.total_cost === null"
+                :href="GameSessionController.editTotals(game.id)"
+                class="underline"
+                >Record totals</Link
+            >
+            <Link
                 :href="
                     CorrectionHistoryController.gameTotal({
                         gameSession: game.id,
@@ -165,7 +179,7 @@ defineProps<{
                 Game totals
             </h2>
             <p class="text-sm text-muted-foreground">
-                Recorded activity across all visits. Ending chips and cash paid
+                Recorded activity across all visits. Cashout and cash paid
                 include completed cashouts only.
             </p>
             <dl class="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
@@ -173,7 +187,7 @@ defineProps<{
                     v-for="total in [
                         { label: 'Total buy-ins', amount: game.totals.buy_ins },
                         {
-                            label: 'Ending chips at cashout',
+                            label: 'Cashout',
                             amount: game.totals.ending_chips,
                         },
                         {
@@ -182,6 +196,7 @@ defineProps<{
                         },
                         { label: 'Total tips', amount: game.total_tips },
                         { label: 'Total game cost', amount: game.total_cost },
+                        { label: 'Income', amount: game.totals.income },
                     ]"
                     :key="total.label"
                     class="min-w-0 rounded-xl border border-sidebar-border/70 bg-card p-4 sm:p-6"
@@ -194,7 +209,9 @@ defineProps<{
                     >
                         {{
                             total.amount === null
-                                ? 'Not recorded'
+                                ? total.label === 'Income'
+                                    ? '—'
+                                    : 'Not recorded'
                                 : money(total.amount)
                         }}
                     </dd>
@@ -301,7 +318,7 @@ defineProps<{
                     </p>
                     <dl class="grid gap-3 text-sm sm:grid-cols-2">
                         <div>
-                            <dt class="text-muted-foreground">Ending chips</dt>
+                            <dt class="text-muted-foreground">Cashout</dt>
                             <dd class="mt-1 font-medium tabular-nums">
                                 {{ money(visit.cashout.ending_chips) }}
                             </dd>

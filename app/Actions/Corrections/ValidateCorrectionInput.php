@@ -69,11 +69,11 @@ class ValidateCorrectionInput
             'game_id' => 'game', 'player_id' => 'player', 'visit_id' => 'visit',
             'target_id' => 'selected record', 'sequence_version' => 'visit sequence',
             'cash_amount' => 'cash amount', 'credit_amount' => 'credit amount',
-            'ending_chips' => 'ending chips', 'cash_paid' => 'cash paid',
+            'ending_chips' => 'cashout amount', 'cash_paid' => 'cash paid',
             'visits.*.buy_ins' => 'buy-ins for each visit',
             'visits.*.buy_ins.*.cash_amount' => 'cash amount for each buy-in',
             'visits.*.buy_ins.*.credit_amount' => 'credit amount for each buy-in',
-            'visits.*.ending_chips' => 'ending chips for each visit',
+            'visits.*.ending_chips' => 'cashout amount for each visit',
             'visits.*.cash_paid' => 'cash paid for each visit',
         ])->validate();
         $data['reason'] = trim($data['reason']);

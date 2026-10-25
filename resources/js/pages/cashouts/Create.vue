@@ -61,7 +61,7 @@ const selectedParticipant = computed(() => {
     <main class="flex min-w-0 flex-1 flex-col gap-6 p-4 sm:p-6">
         <Heading
             title="Record cashout"
-            description="Choose a player and game, then enter the ending chips and cash paid."
+            description="Choose a player and game, then enter the cashout amount and cash paid."
         />
 
         <Form
@@ -158,7 +158,7 @@ const selectedParticipant = computed(() => {
 
             <div class="grid items-start gap-4 sm:grid-cols-2">
                 <div class="grid gap-2">
-                    <Label for="ending_chips">Ending chips ($)</Label>
+                    <Label for="ending_chips">Cashout ($)</Label>
 
                     <Input
                         id="ending_chips"

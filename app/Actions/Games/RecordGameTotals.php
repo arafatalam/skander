@@ -68,6 +68,7 @@ class RecordGameTotals
             }
 
             $game->save();
+            app(EnsureNonNegativeGameIncome::class)->ensure($game);
 
             return $game;
         });

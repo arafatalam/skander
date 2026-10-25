@@ -48,6 +48,7 @@ class CorrectCashout
                 'ending_chips' => (int) $data['ending_chips'],
                 'cash_paid' => (int) $data['cash_paid'],
             ]);
+            app(EnsureNonNegativeGameIncome::class)->ensure($game);
             $player->balance = $this->balances->calculate($player);
             $player->save();
 
@@ -75,7 +76,7 @@ class CorrectCashout
     {
         // Remove only our generated warning, retaining the complete Admin explanation.
         $reason = preg_replace(
-            '/\AWarning: Corrected ending chips \$[0-9,]+ require a return buy-in of (?:exactly \$[0-9,]+|\$[0-9,]+ to \$[0-9,]+)\. The recorded \$[0-9,]+ return buy-in is unchanged\.\n\n/',
+            '/\AWarning: Corrected (?:ending chips|cashout) \$[0-9,]+ require a return buy-in of (?:exactly \$[0-9,]+|\$[0-9,]+ to \$[0-9,]+)\. The recorded \$[0-9,]+ return buy-in is unchanged\.\n\n/',
             '',
             $existing->reason,
         );
@@ -122,7 +123,7 @@ class CorrectCashout
             ? 'exactly $'.number_format($endingChips)
             : '$'.number_format($minimum).' to $'.number_format($maximum);
 
-        return 'Warning: Corrected ending chips $'.number_format($endingChips)
+        return 'Warning: Corrected cashout $'.number_format($endingChips)
             .' require a return buy-in of '.$limits.'. The recorded $'.number_format($returnAmount)
             .' return buy-in is unchanged.';
     }

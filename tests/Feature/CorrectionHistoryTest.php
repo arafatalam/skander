@@ -120,7 +120,7 @@ test('buy-in payment and game total histories reconstruct all supported fields',
     $tips = app(GetCorrectionHistory::class)->get($this->game->fresh(), 'total_tips');
     expect($tips['original']['values'][0]['value'])->toBe('$25')->and($tips['current'][0]['value'])->toBe('$50');
     $cost = app(GetCorrectionHistory::class)->get($this->game->fresh(), 'total_cost');
-    expect($cost['revisions'])->toBe([])->and($cost['current'][0]['value'])->toBe('Not recorded');
+    expect($cost['revisions'])->toBe([])->and($cost['current'][0]['value'])->toBe('$0');
 });
 
 test('corrections require a reason and cannot be changed or deleted through models', function () {
