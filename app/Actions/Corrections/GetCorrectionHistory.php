@@ -98,7 +98,9 @@ class GetCorrectionHistory
     {
         $values = [];
         foreach ($fields as $field => $label) {
-            $value = $correction?->getAttribute($prefix.$field) ?? $current[$field] ?? null;
+            $value = $correction !== null
+                ? $correction->getAttribute($prefix.$field)
+                : ($current[$field] ?? null);
             $values[] = ['label' => $label, 'value' => $this->formatValue($field, $value)];
         }
 

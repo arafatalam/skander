@@ -110,6 +110,7 @@ test('buy-in payment and game total histories reconstruct all supported fields',
     $payment = app(GetCorrectionHistory::class)->get($this->payment->fresh());
     expect($payment['original']['values'][2]['value'])->toBe('2026-10-23')
         ->and($payment['original']['values'][3]['value'])->toBe('Not recorded')
+        ->and($payment['revisions'][0]['before'][3]['value'])->toBe('Not recorded')
         ->and($payment['current'][3]['value'])->toBe('cash')
         ->and($payment['revisions'][0]['after'][1]['value'])->toBe('House collects from player');
     GameTotalCorrection::create($audit + [

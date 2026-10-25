@@ -193,6 +193,15 @@ const changePlayer = (value: unknown) =>
     );
 const changeMode = (value: unknown) =>
     requestChange(() => navigate({ tab: 'missing', mode: String(value) }));
+const correctExistingCashout = () => {
+    const selection = {
+        tab: 'cashouts',
+        game_id: props.selection.game_id,
+        player_id: props.selection.player_id,
+        record_id: selectedVisit.value?.cashout_id ?? null,
+    };
+    requestChange(() => navigate(selection));
+};
 const openForm = (record?: RecordEntry) =>
     requestChange(() => {
         const draft = {
@@ -606,18 +615,7 @@ const recordedTime = (subtitle: string) =>
                             <Button
                                 type="button"
                                 variant="outline"
-                                @click="
-                                    requestChange(() =>
-                                        navigate({
-                                            tab: 'cashouts',
-                                            game_id: selection.game_id,
-                                            player_id: selection.player_id,
-                                            record_id:
-                                                selectedVisit?.cashout_id ??
-                                                null,
-                                        }),
-                                    )
-                                "
+                                @click="correctExistingCashout"
                                 >Correct existing cashout</Button
                             >
                         </div>
