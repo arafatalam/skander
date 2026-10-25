@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import { Form, Head, Link } from '@inertiajs/vue3';
+import { ChevronRight } from '@lucide/vue';
 import { ref } from 'vue';
 import CorrectionHistoryController from '@/actions/App/Http/Controllers/CorrectionHistoryController';
 import GameSessionController from '@/actions/App/Http/Controllers/GameSessionController';
 import Heading from '@/components/Heading.vue';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
     Dialog,
@@ -19,34 +19,30 @@ import {
 
 const confirmationOpen = ref(false);
 
-type Visit = {
+type Purchase = {
     id: number;
+    label: string;
     visit_number: number;
-    buy_ins: { id: number; type: 'cash' | 'credit'; amount: number }[];
-    cashout: {
-        ending_chips: number;
-        cash_paid: number;
-        creation_method: 'manual' | 'automatic';
-        edit_url: string;
-    } | null;
+    cash: number;
+    credit: number;
+    total: number;
 };
 
 type Player = {
     id: number;
     name: string;
-    daily_balance: number;
-    visits: Visit[];
+    participation_status: string;
+    total_cash_buy_in: number;
+    total_credit_buy_in: number;
+    total_buy_in: number;
+    total_cashout: number | null;
+    total_cash_paid: number | null;
+    book_balance_change: number | null;
+    book_balance_change_label: string;
+    purchases: Purchase[];
 };
 
 const money = (amount: number): string => `$${amount.toLocaleString('en-US')}`;
-
-function balanceLabel(balance: number): string {
-    if (balance === 0) return 'Nothing owed';
-
-    return balance > 0
-        ? `House owes player ${money(balance)}`
-        : `Player owes house ${money(Math.abs(balance))}`;
-}
 
 defineProps<{
     backUrl: string;
@@ -222,116 +218,203 @@ defineProps<{
             </p>
         </section>
 
-        <h2 class="text-lg font-semibold">Players and visits</h2>
-
-        <p
-            v-if="game.players.length === 0"
-            class="text-sm text-muted-foreground"
-        >
-            No players have joined this game yet.
-        </p>
-
-        <section
-            v-for="player in game.players"
-            :key="player.id"
-            class="min-w-0 space-y-5 rounded-xl border border-sidebar-border/70 bg-card p-4 sm:p-6"
-        >
-            <h3 class="text-lg font-semibold break-words">{{ player.name }}</h3>
-
-            <dl class="grid gap-4 sm:grid-cols-2">
-                <div>
-                    <dt class="text-sm text-muted-foreground">
-                        Balance at end of day
-                    </dt>
-                    <dd class="mt-1 font-medium">
-                        {{ balanceLabel(player.daily_balance) }}
-                    </dd>
-                </div>
-            </dl>
-
-            <p
-                v-if="player.visits.length === 0"
-                class="text-sm text-muted-foreground"
-            >
-                No visits recorded for this player.
+        <section aria-labelledby="players-heading" class="space-y-4">
+            <h2 id="players-heading" class="text-lg font-semibold">Players</h2>
+            <p class="text-sm text-muted-foreground">
+                Expand a player to see their buy-ins. Game balance change
+                includes this game's credit buy-ins, ending chips and cash paid
+                across all visits; later payments are excluded.
             </p>
-
-            <section
-                v-for="visit in player.visits"
-                :key="visit.id"
-                class="space-y-4 rounded-lg border p-4"
+            <p
+                v-if="game.players.length === 0"
+                class="rounded-xl border p-4 text-sm text-muted-foreground"
             >
-                <div class="flex flex-wrap items-center justify-between gap-2">
-                    <h4 class="font-medium">Visit {{ visit.visit_number }}</h4>
-                    <Badge
-                        :variant="
-                            visit.cashout === null ? 'default' : 'secondary'
-                        "
+                No players have joined this game yet.
+            </p>
+            <div
+                v-else
+                class="min-w-0 divide-y rounded-xl border border-sidebar-border/70 bg-card"
+            >
+                <details
+                    v-for="player in game.players"
+                    :key="player.id"
+                    class="group min-w-0 p-3 sm:p-5"
+                >
+                    <summary
+                        class="flex min-h-11 cursor-pointer list-none flex-wrap items-center gap-4 rounded-md focus-visible:outline-2 focus-visible:outline-ring xl:flex-nowrap [&::-webkit-details-marker]:hidden"
                     >
-                        {{
-                            visit.cashout === null
-                                ? 'Still playing'
-                                : 'Cashed out'
-                        }}
-                    </Badge>
-                </div>
-
-                <div>
-                    <h5 class="text-sm font-medium">Buy-ins</h5>
-                    <p
-                        v-if="visit.buy_ins.length === 0"
-                        class="mt-2 text-sm text-muted-foreground"
-                    >
-                        No buy-ins recorded for this visit.
-                    </p>
-                    <ul v-else class="mt-2 divide-y text-sm">
-                        <li
-                            v-for="buyIn in visit.buy_ins"
-                            :key="buyIn.id"
-                            class="flex flex-wrap justify-between gap-2 py-2"
+                        <span
+                            class="flex min-w-0 items-center gap-2 xl:w-64 xl:shrink-0"
                         >
-                            <span
-                                >{{
-                                    buyIn.type === 'cash' ? 'Cash' : 'Credit'
-                                }}
-                                buy-in</span
+                            <ChevronRight
+                                class="size-4 shrink-0 group-open:rotate-90"
+                                aria-hidden="true"
+                            />
+                            <span class="min-w-0">
+                                <span class="block font-semibold break-words">{{
+                                    player.name
+                                }}</span>
+                                <span
+                                    class="mt-1 block text-xs text-muted-foreground"
+                                    >{{ player.participation_status }}</span
+                                >
+                            </span>
+                        </span>
+                        <span
+                            class="grid w-full min-w-0 grid-cols-2 gap-x-3 gap-y-4 sm:grid-cols-[minmax(max-content,1.2fr)_1fr_1fr_1.3fr] xl:ml-auto xl:w-auto xl:flex-1 xl:pl-4"
+                        >
+                            <span class="min-w-0">
+                                <span
+                                    class="block text-xs text-muted-foreground"
+                                    >Total buy-in</span
+                                >
+                                <span
+                                    class="mt-1 block font-medium tabular-nums"
+                                    >{{ money(player.total_buy_in) }}</span
+                                >
+                                <span
+                                    class="mt-1 block text-xs whitespace-nowrap text-muted-foreground"
+                                    >{{ money(player.total_cash_buy_in) }}
+                                    cash ·
+                                    {{ money(player.total_credit_buy_in) }}
+                                    cr</span
+                                >
+                            </span>
+                            <span class="min-w-0">
+                                <span
+                                    class="block text-xs text-muted-foreground"
+                                    >Total cashout</span
+                                >
+                                <span
+                                    class="mt-1 block font-medium tabular-nums"
+                                    >{{
+                                        player.total_cashout === null
+                                            ? '—'
+                                            : money(player.total_cashout)
+                                    }}</span
+                                >
+                            </span>
+                            <span class="min-w-0">
+                                <span
+                                    class="block text-xs text-muted-foreground"
+                                    >Cash paid</span
+                                >
+                                <span
+                                    class="mt-1 block font-medium tabular-nums"
+                                    >{{
+                                        player.total_cash_paid === null
+                                            ? '—'
+                                            : money(player.total_cash_paid)
+                                    }}</span
+                                >
+                            </span>
+                            <span class="min-w-0">
+                                <span
+                                    class="block text-xs text-muted-foreground"
+                                    >Game balance change</span
+                                >
+                                <span
+                                    class="mt-1 block font-medium tabular-nums"
+                                    >{{
+                                        player.book_balance_change_label
+                                    }}</span
+                                >
+                                <span
+                                    class="mt-1 block text-xs text-muted-foreground"
+                                    >{{
+                                        player.book_balance_change === null
+                                            ? 'Still playing'
+                                            : 'This game only'
+                                    }}</span
+                                >
+                            </span>
+                        </span>
+                    </summary>
+                    <div class="mt-5 min-w-0 border-t pt-4">
+                        <h3 class="mb-3 text-sm font-medium">Buy-in history</h3>
+                        <p
+                            v-if="player.purchases.length === 0"
+                            class="text-sm text-muted-foreground"
+                        >
+                            No buy-ins recorded for this player.
+                        </p>
+                        <div v-else class="overflow-x-auto">
+                            <table
+                                class="w-full table-fixed text-center text-sm"
                             >
-                            <span class="font-medium tabular-nums">{{
-                                money(buyIn.amount)
-                            }}</span>
-                        </li>
-                    </ul>
-                </div>
-
-                <div v-if="visit.cashout" class="space-y-3 border-t pt-4">
-                    <h5 class="text-sm font-medium">Cashout</h5>
-                    <Link
-                        :href="visit.cashout.edit_url"
-                        class="text-sm underline"
-                        >Correct cashout</Link
-                    >
-                    <p
-                        v-if="visit.cashout.creation_method === 'automatic'"
-                        class="text-sm text-muted-foreground"
-                    >
-                        Automatically recorded when the game was closed.
-                    </p>
-                    <dl class="grid gap-3 text-sm sm:grid-cols-2">
-                        <div>
-                            <dt class="text-muted-foreground">Cashout</dt>
-                            <dd class="mt-1 font-medium tabular-nums">
-                                {{ money(visit.cashout.ending_chips) }}
-                            </dd>
+                                <caption class="sr-only">
+                                    Buy-in history for
+                                    {{
+                                        player.name
+                                    }}
+                                </caption>
+                                <thead
+                                    class="bg-muted/50 text-muted-foreground"
+                                >
+                                    <tr>
+                                        <th
+                                            scope="col"
+                                            class="px-1 py-3 text-center font-medium sm:px-3"
+                                        >
+                                            Purchase
+                                        </th>
+                                        <th
+                                            scope="col"
+                                            class="px-1 py-3 text-center font-medium sm:px-3"
+                                        >
+                                            Cash
+                                        </th>
+                                        <th
+                                            scope="col"
+                                            class="px-1 py-3 text-center font-medium sm:px-3"
+                                        >
+                                            Credit
+                                        </th>
+                                        <th
+                                            scope="col"
+                                            class="px-1 py-3 text-center font-medium sm:px-3"
+                                        >
+                                            Total
+                                        </th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y">
+                                    <tr
+                                        v-for="purchase in player.purchases"
+                                        :key="purchase.id"
+                                    >
+                                        <td class="px-1 py-3 sm:px-3">
+                                            {{ purchase.label }}
+                                            <span
+                                                class="block text-xs text-muted-foreground"
+                                                >Visit
+                                                {{
+                                                    purchase.visit_number
+                                                }}</span
+                                            >
+                                        </td>
+                                        <td
+                                            class="px-1 py-3 text-center tabular-nums sm:px-3"
+                                        >
+                                            {{ money(purchase.cash) }}
+                                        </td>
+                                        <td
+                                            class="px-1 py-3 text-center tabular-nums sm:px-3"
+                                        >
+                                            {{ money(purchase.credit) }}
+                                        </td>
+                                        <td
+                                            class="px-1 py-3 text-center font-medium tabular-nums sm:px-3"
+                                        >
+                                            {{ money(purchase.total) }}
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
                         </div>
-                        <div>
-                            <dt class="text-muted-foreground">Cash paid</dt>
-                            <dd class="mt-1 font-medium tabular-nums">
-                                {{ money(visit.cashout.cash_paid) }}
-                            </dd>
-                        </div>
-                    </dl>
-                </div>
-            </section>
+                    </div>
+                </details>
+            </div>
         </section>
     </main>
 </template>

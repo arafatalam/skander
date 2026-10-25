@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { Form, Head, Link } from '@inertiajs/vue3';
+import { ChevronRight } from '@lucide/vue';
 import { ref } from 'vue';
 import CorrectionHistoryController from '@/actions/App/Http/Controllers/CorrectionHistoryController';
 import PlayerController from '@/actions/App/Http/Controllers/PlayerController';
@@ -20,35 +21,27 @@ import {
 
 const confirmationOpen = ref(false);
 
-type BuyIn = {
+type Purchase = {
     id: number;
-    amount: number;
-    type: 'cash' | 'credit';
-    recorded_at: string;
-};
-
-type Cashout = {
-    id: number;
-    ending_chips: number;
-    cash_paid: number;
-    creation_method: 'manual' | 'automatic';
-    cashed_out_at: string;
-    edit_url: string;
-};
-
-type Visit = {
-    id: number;
+    label: string;
     visit_number: number;
-    opened_at: string;
-    buy_ins: BuyIn[];
-    cashout: Cashout | null;
+    cash: number;
+    credit: number;
+    total: number;
 };
 
 type Game = {
     id: number;
     game_name: string;
-    daily_balance_label: string;
-    visits: Visit[];
+    status: 'open' | 'closed';
+    total_cash_buy_in: number;
+    total_credit_buy_in: number;
+    total_buy_in: number;
+    total_cashout: number | null;
+    total_cash_paid: number | null;
+    book_balance_change: number | null;
+    book_balance_change_label: string;
+    purchases: Purchase[];
 };
 
 type Payment = {
@@ -67,6 +60,8 @@ defineProps<{
         id: number;
         name: string;
         balance_label: string;
+        balance_amount: number;
+        balance_direction: string;
         is_active: boolean;
     };
     backUrl: string;
@@ -203,8 +198,10 @@ function formatPaymentDate(value: string): string {
                 Game history
             </h2>
             <p class="text-sm text-muted-foreground">
-                Oldest participation first. Activity times are shown in Moncton
-                time.
+                Oldest participation first. Expand a game to see its buy-ins.
+                Current book balance includes all games and later payments. Game
+                balance change includes only that game's credit buy-ins, ending
+                chips and cash paid, across all visits.
             </p>
             <p
                 v-if="games.length === 0"
@@ -213,159 +210,192 @@ function formatPaymentDate(value: string): string {
                 No games recorded for this player.
             </p>
 
-            <article
-                v-for="game in games"
-                :key="game.id"
-                class="min-w-0 space-y-5 rounded-xl border border-sidebar-border/70 bg-card p-4 sm:p-6"
+            <div
+                v-else
+                class="min-w-0 divide-y rounded-xl border border-sidebar-border/70 bg-card"
             >
-                <h3 class="text-lg font-semibold break-words">
-                    {{ game.game_name }}
-                </h3>
-                <dl class="grid gap-4 sm:grid-cols-2">
-                    <div>
-                        <dt class="text-sm text-muted-foreground">
-                            Balance at end of day
-                        </dt>
-                        <dd class="mt-1 font-medium break-words">
-                            {{ game.daily_balance_label }}
-                        </dd>
-                    </div>
-                </dl>
-                <p class="text-sm text-muted-foreground">
-                    Includes all activity and payments dated on or before this
-                    game’s date, across every game played that day.
-                </p>
-                <p
-                    v-if="game.visits.length === 0"
-                    class="text-sm text-muted-foreground"
+                <details
+                    v-for="game in games"
+                    :key="game.id"
+                    class="group min-w-0 p-3 sm:p-5"
                 >
-                    No visits recorded.
-                </p>
-
-                <section
-                    v-for="visit in game.visits"
-                    :key="visit.id"
-                    class="space-y-4 rounded-lg border p-4"
-                >
-                    <div
-                        class="flex flex-wrap items-center justify-between gap-2"
+                    <summary
+                        class="flex min-h-11 cursor-pointer list-none flex-wrap items-center gap-4 rounded-md focus-visible:outline-2 focus-visible:outline-ring xl:flex-nowrap [&::-webkit-details-marker]:hidden"
                     >
-                        <h4 class="font-medium">
-                            Visit {{ visit.visit_number }}
-                        </h4>
-                        <Badge variant="secondary">
-                            {{
-                                visit.cashout === null
-                                    ? 'Still playing'
-                                    : 'Cashed out'
-                            }}
-                        </Badge>
-                    </div>
-                    <p class="text-sm text-muted-foreground">
-                        Started
-                        <time :datetime="visit.opened_at">{{
-                            formatDateTime(visit.opened_at)
-                        }}</time>
-                    </p>
-                    <div>
-                        <h5 class="text-sm font-medium">Buy-ins</h5>
-                        <p
-                            v-if="visit.buy_ins.length === 0"
-                            class="mt-2 text-sm text-muted-foreground"
+                        <span
+                            class="flex min-w-0 items-center gap-2 xl:shrink-0"
                         >
-                            No buy-ins recorded for this visit.
-                        </p>
-                        <ul v-else class="mt-2 divide-y">
-                            <li
-                                v-for="buyIn in visit.buy_ins"
-                                :key="buyIn.id"
-                                class="flex flex-wrap items-start justify-between gap-2 py-3 text-sm"
-                            >
-                                <div>
-                                    <p>
-                                        {{
-                                            buyIn.type === 'cash'
-                                                ? 'Cash'
-                                                : 'Credit'
-                                        }}
-                                        buy-in
-                                    </p>
-                                    <time
-                                        :datetime="buyIn.recorded_at"
-                                        class="text-muted-foreground"
-                                    >
-                                        {{ formatDateTime(buyIn.recorded_at) }}
-                                    </time>
-                                </div>
-                                <Link
-                                    :href="
-                                        CorrectionHistoryController.buyIn(
-                                            buyIn.id,
-                                        )
-                                    "
-                                    class="text-sm underline"
-                                    >Correction history</Link
-                                >
-                                <span class="font-medium tabular-nums">{{
-                                    formatMoney(buyIn.amount)
+                            <ChevronRight
+                                class="size-4 shrink-0 group-open:rotate-90"
+                                aria-hidden="true"
+                            />
+                            <span class="min-w-0">
+                                <span class="block font-semibold break-words">{{
+                                    game.game_name
                                 }}</span>
-                            </li>
-                        </ul>
-                    </div>
-                    <div v-if="visit.cashout" class="space-y-3 border-t pt-4">
-                        <Link
-                            :href="visit.cashout.edit_url"
-                            class="mr-4 text-sm underline"
-                            >Correct cashout</Link
+                                <span
+                                    class="mt-1 block text-xs text-muted-foreground"
+                                    >{{
+                                        game.status === 'open'
+                                            ? 'Open'
+                                            : 'Closed'
+                                    }}</span
+                                >
+                            </span>
+                        </span>
+                        <span
+                            class="grid w-full min-w-0 grid-cols-2 gap-x-3 gap-y-4 sm:grid-cols-[minmax(max-content,1.2fr)_1fr_1fr_1.3fr] xl:ml-auto xl:w-auto xl:flex-1 xl:pl-4"
                         >
-                        <Link
-                            :href="
-                                CorrectionHistoryController.cashout(
-                                    visit.cashout.id,
-                                )
-                            "
-                            class="text-sm underline"
-                            >Correction history</Link
-                        >
-
-                        <h5 class="text-sm font-medium">
-                            {{
-                                visit.cashout.creation_method === 'automatic'
-                                    ? 'Automatic cashout'
-                                    : 'Manual cashout'
-                            }}
-                        </h5>
-                        <time
-                            :datetime="visit.cashout.cashed_out_at"
-                            class="block text-sm text-muted-foreground"
-                        >
-                            {{ formatDateTime(visit.cashout.cashed_out_at) }}
-                        </time>
+                            <span class="min-w-0">
+                                <span
+                                    class="block text-xs text-muted-foreground"
+                                    >Total buy-in</span
+                                >
+                                <span
+                                    class="mt-1 block font-medium tabular-nums"
+                                    >{{ formatMoney(game.total_buy_in) }}</span
+                                >
+                                <span
+                                    class="mt-1 block text-xs whitespace-nowrap text-muted-foreground"
+                                    >{{ formatMoney(game.total_cash_buy_in) }}
+                                    cash ·
+                                    {{ formatMoney(game.total_credit_buy_in) }}
+                                    cr</span
+                                >
+                            </span>
+                            <span class="min-w-0">
+                                <span
+                                    class="block text-xs text-muted-foreground"
+                                    >Total cashout</span
+                                >
+                                <span
+                                    class="mt-1 block font-medium tabular-nums"
+                                    >{{
+                                        game.total_cashout === null
+                                            ? '—'
+                                            : formatMoney(game.total_cashout)
+                                    }}</span
+                                >
+                            </span>
+                            <span class="min-w-0">
+                                <span
+                                    class="block text-xs text-muted-foreground"
+                                    >Cash paid</span
+                                >
+                                <span
+                                    class="mt-1 block font-medium tabular-nums"
+                                    >{{
+                                        game.total_cash_paid === null
+                                            ? '—'
+                                            : formatMoney(game.total_cash_paid)
+                                    }}</span
+                                >
+                            </span>
+                            <span class="min-w-0">
+                                <span
+                                    class="block text-xs text-muted-foreground"
+                                    >Game balance change</span
+                                >
+                                <span
+                                    class="mt-1 block font-medium tabular-nums"
+                                    >{{ game.book_balance_change_label }}</span
+                                >
+                                <span
+                                    class="mt-1 block text-xs text-muted-foreground"
+                                    >{{
+                                        game.book_balance_change === null
+                                            ? 'Still playing'
+                                            : 'This game only'
+                                    }}</span
+                                >
+                            </span>
+                        </span>
+                    </summary>
+                    <div class="mt-5 min-w-0 border-t pt-4">
+                        <h3 class="mb-3 text-sm font-medium">Buy-in history</h3>
                         <p
-                            v-if="visit.cashout.creation_method === 'automatic'"
+                            v-if="game.purchases.length === 0"
                             class="text-sm text-muted-foreground"
                         >
-                            Recorded automatically when the game was closed.
+                            No buy-ins recorded for this game.
                         </p>
-                        <dl class="grid gap-3 text-sm sm:grid-cols-2">
-                            <div>
-                                <dt class="text-muted-foreground">Cashout</dt>
-                                <dd class="mt-1 font-medium tabular-nums">
+                        <div v-else class="overflow-x-auto">
+                            <table
+                                class="w-full table-fixed text-center text-sm"
+                            >
+                                <caption class="sr-only">
+                                    Buy-in history for
                                     {{
-                                        formatMoney(visit.cashout.ending_chips)
+                                        game.game_name
                                     }}
-                                </dd>
-                            </div>
-                            <div>
-                                <dt class="text-muted-foreground">Cash paid</dt>
-                                <dd class="mt-1 font-medium tabular-nums">
-                                    {{ formatMoney(visit.cashout.cash_paid) }}
-                                </dd>
-                            </div>
-                        </dl>
+                                </caption>
+                                <thead
+                                    class="bg-muted/50 text-muted-foreground"
+                                >
+                                    <tr>
+                                        <th
+                                            scope="col"
+                                            class="px-1 py-3 text-center font-medium sm:px-3"
+                                        >
+                                            Purchase
+                                        </th>
+                                        <th
+                                            scope="col"
+                                            class="px-1 py-3 text-center font-medium sm:px-3"
+                                        >
+                                            Cash
+                                        </th>
+                                        <th
+                                            scope="col"
+                                            class="px-1 py-3 text-center font-medium sm:px-3"
+                                        >
+                                            Credit
+                                        </th>
+                                        <th
+                                            scope="col"
+                                            class="px-1 py-3 text-center font-medium sm:px-3"
+                                        >
+                                            Total
+                                        </th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y">
+                                    <tr
+                                        v-for="purchase in game.purchases"
+                                        :key="purchase.id"
+                                    >
+                                        <td class="px-1 py-3 sm:px-3">
+                                            {{ purchase.label }}
+                                            <span
+                                                class="block text-xs text-muted-foreground"
+                                                >Visit
+                                                {{
+                                                    purchase.visit_number
+                                                }}</span
+                                            >
+                                        </td>
+                                        <td
+                                            class="px-1 py-3 text-center tabular-nums sm:px-3"
+                                        >
+                                            {{ formatMoney(purchase.cash) }}
+                                        </td>
+                                        <td
+                                            class="px-1 py-3 text-center tabular-nums sm:px-3"
+                                        >
+                                            {{ formatMoney(purchase.credit) }}
+                                        </td>
+                                        <td
+                                            class="px-1 py-3 text-center font-medium tabular-nums sm:px-3"
+                                        >
+                                            {{ formatMoney(purchase.total) }}
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
-                </section>
-            </article>
+                </details>
+            </div>
         </section>
 
         <section aria-labelledby="payments-heading" class="space-y-4">
@@ -373,7 +403,8 @@ function formatPaymentDate(value: string): string {
                 Later payments
             </h2>
             <p class="text-sm text-muted-foreground">
-                Oldest payment date first.
+                Oldest payment date first. Recorded times are shown in Moncton
+                time.
             </p>
             <p
                 v-if="payments.length === 0"
@@ -381,58 +412,121 @@ function formatPaymentDate(value: string): string {
             >
                 No later payments recorded for this player.
             </p>
-            <ul v-else class="space-y-4">
-                <li
-                    v-for="payment in payments"
-                    :key="payment.id"
-                    class="min-w-0 space-y-3 rounded-xl border border-sidebar-border/70 bg-card p-4 sm:p-6"
+            <div
+                v-else
+                class="min-w-0 overflow-x-auto rounded-xl border border-sidebar-border/70 bg-card"
+            >
+                <table
+                    class="w-full min-w-[1000px] table-fixed text-center text-sm"
                 >
-                    <Link
-                        :href="CorrectionHistoryController.payment(payment.id)"
-                        class="text-sm underline"
-                        >Correction history</Link
+                    <caption class="sr-only">
+                        Later payments for
+                        {{
+                            player.name
+                        }}
+                    </caption>
+                    <thead class="bg-muted/50 text-muted-foreground">
+                        <tr>
+                            <th
+                                scope="col"
+                                class="px-2 py-3 font-medium sm:px-4"
+                            >
+                                Payment date
+                            </th>
+                            <th
+                                scope="col"
+                                class="px-2 py-3 font-medium sm:px-4"
+                            >
+                                Direction
+                            </th>
+                            <th
+                                scope="col"
+                                class="px-2 py-3 font-medium sm:px-4"
+                            >
+                                Amount
+                            </th>
+                            <th
+                                scope="col"
+                                class="px-2 py-3 font-medium sm:px-4"
+                            >
+                                Recorded at
+                            </th>
+                            <th
+                                scope="col"
+                                class="w-[24%] px-2 py-3 font-medium sm:px-4"
+                            >
+                                Note
+                            </th>
+                            <th
+                                scope="col"
+                                class="w-[20%] px-2 py-3 font-medium sm:px-4"
+                            >
+                                Actions
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody
+                        v-for="payment in payments"
+                        :key="payment.id"
+                        class="border-t"
                     >
-                    <Link
-                        :href="payment.edit_url"
-                        class="ml-4 text-sm underline"
-                        >Correct payment</Link
-                    >
-                    <div
-                        class="flex flex-wrap items-start justify-between gap-2"
-                    >
-                        <h3 class="font-medium">
-                            {{ payment.direction_label }}
-                        </h3>
-                        <span class="font-semibold tabular-nums">{{
-                            formatMoney(payment.amount)
-                        }}</span>
-                    </div>
-                    <dl class="grid gap-3 text-sm sm:grid-cols-2">
-                        <div>
-                            <dt class="text-muted-foreground">Payment date</dt>
-                            <dd class="mt-1">
+                        <tr>
+                            <td class="px-2 py-3 align-middle sm:px-4">
                                 <time :datetime="payment.paid_at">{{
                                     formatPaymentDate(payment.paid_at)
                                 }}</time>
-                            </dd>
-                        </div>
-                        <div>
-                            <dt class="text-muted-foreground">Recorded at</dt>
-                            <dd class="mt-1">
+                            </td>
+                            <td class="px-2 py-3 align-middle sm:px-4">
+                                {{ payment.direction_label }}
+                            </td>
+                            <td
+                                class="px-2 py-3 align-middle font-medium break-words tabular-nums sm:px-4"
+                            >
+                                {{ formatMoney(payment.amount) }}
+                            </td>
+                            <td class="px-2 py-3 align-middle sm:px-4">
                                 <time :datetime="payment.recorded_at">{{
                                     formatDateTime(payment.recorded_at)
                                 }}</time>
-                            </dd>
-                        </div>
-                    </dl>
-                    <p
-                        v-if="payment.note"
-                        class="text-sm break-words whitespace-pre-wrap"
-                    >
-                        {{ payment.note }}
-                    </p>
-                </li>
-            </ul>
+                            </td>
+                            <td
+                                class="px-2 py-3 align-middle break-words whitespace-pre-wrap sm:px-4"
+                            >
+                                {{ payment.note || '—' }}
+                            </td>
+                            <td class="px-2 py-3 align-middle sm:px-4">
+                                <div
+                                    class="flex flex-wrap justify-center gap-2"
+                                >
+                                    <Button
+                                        variant="outline"
+                                        size="sm"
+                                        as-child
+                                    >
+                                        <Link
+                                            :href="
+                                                CorrectionHistoryController.payment(
+                                                    payment.id,
+                                                )
+                                            "
+                                            >Correction history</Link
+                                        >
+                                    </Button>
+                                    <Button
+                                        variant="outline"
+                                        size="sm"
+                                        as-child
+                                    >
+                                        <Link :href="payment.edit_url"
+                                            >Correct payment</Link
+                                        >
+                                    </Button>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
         </section>
     </main>
 </template>

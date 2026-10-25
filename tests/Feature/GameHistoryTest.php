@@ -7,6 +7,8 @@ use App\Actions\Games\CreateBuyIn;
 use App\Actions\Games\CreateCashout;
 use App\Actions\Games\GetGameTotals;
 use App\Actions\Games\RecordGameTotals;
+use App\Actions\Payments\RecordPayment;
+use App\Actions\Players\GetPlayerHistory;
 use App\Models\Cashout;
 use App\Models\CorrectionSubmission;
 use App\Models\GameSession;
@@ -159,4 +161,108 @@ test('closing retains the applied list context and defaults both totals to zero'
     $this->actingAs($this->admin)->post(route('games.close', ['gameSession' => $this->game->id, ...$filters]))
         ->assertRedirect(route('games.show', ['gameSession' => $this->game->id, ...$filters]))->assertSessionHasNoErrors();
     expect($this->game->fresh()->total_tips)->toBe(0)->and($this->game->fresh()->total_cost)->toBe(0);
+});
+
+test('player history groups purchases and totals all visits without confusing absent cashouts with zero', function () {
+    $url = route('players.show', $this->player);
+    $this->actingAs($this->admin)->get($url)->assertInertia(fn (Assert $page) => $page
+        ->where('games.0.status', 'open')->where('games.0.total_buy_in', 300)
+        ->where('games.0.total_cashout', null)->where('games.0.total_cash_paid', null)
+        ->has('games.0.purchases', 1)->where('games.0.purchases.0.cash', 200)
+        ->where('games.0.purchases.0.credit', 100)->where('games.0.purchases.0.total', 300)
+        ->where('player.balance_amount', 100)->where('player.balance_direction', 'Player owes house'));
+    app(CreateBuyIn::class)->create($this->game, $this->player, $this->admin, 0, 100);
+    app(CreateCashout::class)->create($this->game, $this->player, $this->admin, 300, 50, $this->visit->id);
+    app(CreateBuyIn::class)->create($this->game, $this->player, $this->admin, 300, 0);
+    app(CloseGameSession::class)->close($this->game, $this->admin);
+    $this->get($url)->assertInertia(fn (Assert $page) => $page
+        ->where('games.0.status', 'closed')->where('games.0.total_buy_in', 700)
+        ->where('games.0.total_cash_buy_in', 500)->where('games.0.total_credit_buy_in', 200)
+        ->where('games.0.total_cashout', 300)->where('games.0.total_cash_paid', 50)
+        ->has('games.0.purchases', 3)->where('games.0.purchases.0.label', 'Initial buy-in')
+        ->where('games.0.purchases.1.label', 'Top-up')->where('games.0.purchases.2.label', 'Return buy-in')
+        ->where('games.0.purchases.2.visit_number', 2)
+        ->where('player.balance_amount', 50)->where('player.balance_direction', 'House owes player'));
+    $this->actingAs(User::factory()->create(['role' => 'player']))->get($url)->assertForbidden();
+});
+
+test('player history shows recorded automatic zero cashouts as zero', function () {
+    app(CloseGameSession::class)->close($this->game, $this->admin);
+    $this->actingAs($this->admin)->get(route('players.show', $this->player))
+        ->assertInertia(fn (Assert $page) => $page->where('games.0.total_cashout', 0)->where('games.0.total_cash_paid', 0));
+});
+
+test('game balance change is signed and available only after cashout or closure', function (int $chips, int $paid, int $change, string $label) {
+    $url = route('players.show', $this->player);
+    $this->actingAs($this->admin)->get($url)->assertInertia(fn (Assert $page) => $page
+        ->where('games.0.book_balance_change', null)->where('games.0.book_balance_change_label', '—'));
+    app(CreateCashout::class)->create($this->game, $this->player, $this->admin, $chips, $paid, $this->visit->id);
+    $this->get($url)->assertInertia(fn (Assert $page) => $page
+        ->where('games.0.status', 'open')->where('games.0.book_balance_change', $change)
+        ->where('games.0.book_balance_change_label', $label));
+    $balanceBeforeRead = $this->player->fresh()->balance;
+    $this->get($url)->assertOk();
+    expect($this->player->fresh()->balance)->toBe($balanceBeforeRead);
+})->with([[500, 100, 300, '+$300'], [0, 0, -100, '−$100'], [200, 100, 0, '$0']]);
+
+test('returning makes game change pending and closing includes every visit while excluding other games', function () {
+    app(CreateCashout::class)->create($this->game, $this->player, $this->admin, 300, 50, $this->visit->id);
+    app(CreateBuyIn::class)->create($this->game, $this->player, $this->admin, 100, 200);
+    $url = route('players.show', $this->player);
+    $this->actingAs($this->admin)->get($url)->assertInertia(fn (Assert $page) => $page->where('games.0.book_balance_change', null));
+    app(CloseGameSession::class)->close($this->game, $this->admin);
+    $other = $this->game->replicate();
+    $other->fill(['game_number' => 2, 'game_name' => '20_OCT_2026_2', 'status' => 'open'])->save();
+    app(CreateBuyIn::class)->create($other, $this->player, $this->admin, 0, 100);
+    $this->get($url)->assertInertia(fn (Assert $page) => $page
+        ->where('games.0.book_balance_change', -50)->where('games.0.book_balance_change_label', '−$50')
+        ->where('games.1.book_balance_change', null)->where('player.balance_amount', 150));
+    $cashout = $this->visit->cashout()->firstOrFail();
+    app(CorrectCashout::class)->correct($cashout, $this->admin, [
+        'ending_chips' => 400, 'cash_paid' => 50, 'revision' => 0,
+        'submission_id' => (string) Str::uuid(), 'reason' => 'Correct ending chips',
+    ]);
+    $this->get($url)->assertInertia(fn (Assert $page) => $page
+        ->where('games.0.status', 'closed')->where('games.0.book_balance_change', 50)
+        ->where('games.0.book_balance_change_label', '+$50')->where('player.balance_amount', 50)
+        ->where('player.balance_direction', 'Player owes house'));
+    app(RecordPayment::class)->record(
+        $this->player, $this->admin, 75, 'house_collects_from_player', '2026-10-21', (string) Str::uuid(),
+    );
+    $this->get($url)->assertInertia(fn (Assert $page) => $page
+        ->where('games.0.book_balance_change', 50)->where('player.balance_amount', 25)
+        ->where('player.balance_direction', 'House owes player'));
+});
+
+test('game detail player rows match player history across returns closure and corrections', function () {
+    $otherPlayer = Player::create(['name' => 'Other participant']);
+    app(CreateBuyIn::class)->create($this->game, $otherPlayer, $this->admin, 500, 0);
+    $fields = ['total_cash_buy_in', 'total_credit_buy_in', 'total_buy_in', 'total_cashout',
+        'total_cash_paid', 'book_balance_change', 'book_balance_change_label', 'purchases', 'participation_status'];
+    $check = function (?int $change, string $status, int $purchaseCount) use ($fields) {
+        $history = app(GetPlayerHistory::class)->get($this->player->fresh());
+        $expected = collect($history['games']->first())->only($fields)->toArray();
+        $this->actingAs($this->admin)->get(route('games.show', $this->game))->assertInertia(fn (Assert $page) => $page
+            ->has('game.players', 2)
+            ->where('game.players.0.name', $this->player->name)
+            ->where('game.players.0', fn ($row) => collect($row)->only($fields)->toArray() === $expected)
+            ->where('game.players.0.book_balance_change', $change)
+            ->where('game.players.0.participation_status', $status)
+            ->has('game.players.0.purchases', $purchaseCount)
+            ->where('game.players.1.total_buy_in', 500));
+    };
+    $check(null, 'Still playing', 1);
+    app(CreateBuyIn::class)->create($this->game, $this->player, $this->admin, 0, 100);
+    app(CreateCashout::class)->create($this->game, $this->player, $this->admin, 300, 50, $this->visit->id);
+    $check(50, 'Cashed out', 2);
+    app(CreateBuyIn::class)->create($this->game, $this->player, $this->admin, 100, 200);
+    $check(null, 'Still playing', 3);
+    app(CloseGameSession::class)->close($this->game, $this->admin);
+    $check(-150, 'Cashed out', 3);
+    $cashout = $this->visit->cashout()->firstOrFail();
+    app(CorrectCashout::class)->correct($cashout, $this->admin, [
+        'ending_chips' => 500, 'cash_paid' => 50, 'revision' => 0,
+        'submission_id' => (string) Str::uuid(), 'reason' => 'Correct chips',
+    ]);
+    $check(50, 'Cashed out', 3);
 });

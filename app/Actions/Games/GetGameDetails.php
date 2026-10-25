@@ -12,6 +12,7 @@ class GetGameDetails
     public function __construct(
         private readonly CalculatePlayerBalance $calculatePlayerBalance,
         private readonly GetGameTotals $totals,
+        private readonly GetPlayerGameActivity $activity,
     ) {}
 
     /**
@@ -21,6 +22,7 @@ class GetGameDetails
     {
         $gameSession->load(
             'playerGames.player',
+            'playerGames.gameSession',
             'playerGames.buyIns',
             'playerGames.visits.buyIns',
             'playerGames.visits.cashout',
@@ -47,6 +49,7 @@ class GetGameDetails
         return [
             'id' => $playerGame->id,
             'name' => $playerGame->player->name,
+            ...$this->activity->get($playerGame),
             'daily_balance' => $this->calculatePlayerBalance->calculate($playerGame->player, $playerGame->gameSession->game_date->toDateString()),
             'visits' => $playerGame->visits->map(
                 fn (PlayerGameVisit $visit) => $this->visitDetails($visit),

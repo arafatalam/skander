@@ -2,6 +2,7 @@
 
 namespace App\Actions\Players;
 
+use App\Actions\Games\GetPlayerGameActivity;
 use App\Models\BuyIn;
 use App\Models\Cashout;
 use App\Models\Payment;
@@ -14,6 +15,7 @@ class GetPlayerHistory
 {
     public function __construct(
         private readonly CalculatePlayerBalance $calculatePlayerBalance,
+        private readonly GetPlayerGameActivity $activity,
     ) {}
 
     /**
@@ -38,6 +40,9 @@ class GetPlayerHistory
             'name' => $player->name,
             'is_active' => $player->is_active,
             'balance_label' => $this->formatBalanceForDisplay($player->balance),
+            'balance_amount' => abs($player->balance),
+            'balance_direction' => $player->balance > 0 ? 'House owes player'
+                : ($player->balance < 0 ? 'Player owes house' : 'Nothing owed'),
         ];
     }
 
@@ -66,6 +71,8 @@ class GetPlayerHistory
         return [
             'id' => $playerGame->id,
             'game_name' => $playerGame->gameSession->game_name,
+            'status' => $playerGame->gameSession->status,
+            ...$this->activity->get($playerGame),
             'daily_balance_label' => $this->formatBalanceForDisplay($gameBalance),
             'visits' => $this->visitHistory($playerGame),
         ];
