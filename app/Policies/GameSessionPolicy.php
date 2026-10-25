@@ -7,6 +7,11 @@ use App\Models\User;
 
 class GameSessionPolicy
 {
+    public function addHistoricalActivity(User $user, GameSession $gameSession): bool
+    {
+        return $user->role === 'admin';
+    }
+
     public function viewCorrections(User $user, GameSession $gameSession): bool
     {
         return $user->role === 'admin';

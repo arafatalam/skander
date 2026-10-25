@@ -149,7 +149,7 @@ test('admin can load correction props and submit a closed game cashout correctio
     $cashout = $this->visit->cashout()->firstOrFail();
     $this->actingAs($this->admin)->get(route('cashouts.edit', $cashout))
         ->assertOk()->assertInertia(fn (Assert $page) => $page
-            ->component('cashouts/Edit')
+        ->component('cashouts/Edit')
         ->where('cashout.id', $cashout->id)
         ->where('cashout.ending_chips', 0)
         ->where('cashout.cash_paid', 0)

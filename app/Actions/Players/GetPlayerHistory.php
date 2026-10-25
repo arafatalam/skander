@@ -139,6 +139,7 @@ class GetPlayerHistory
             'cash_paid' => $cashout->cash_paid,
             'creation_method' => $cashout->creation_method,
             'cashed_out_at' => $cashout->cashed_out_at->toIso8601String(),
+            'edit_url' => route('cashouts.edit', $cashout),
         ];
     }
 

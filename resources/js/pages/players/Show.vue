@@ -33,6 +33,7 @@ type Cashout = {
     cash_paid: number;
     creation_method: 'manual' | 'automatic';
     cashed_out_at: string;
+    edit_url: string;
 };
 
 type Visit = {
@@ -312,6 +313,11 @@ function formatPaymentDate(value: string): string {
                         </ul>
                     </div>
                     <div v-if="visit.cashout" class="space-y-3 border-t pt-4">
+                        <Link
+                            :href="visit.cashout.edit_url"
+                            class="mr-4 text-sm underline"
+                            >Correct cashout</Link
+                        >
                         <Link
                             :href="
                                 CorrectionHistoryController.cashout(

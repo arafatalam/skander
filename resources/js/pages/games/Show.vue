@@ -27,6 +27,7 @@ type Visit = {
         ending_chips: number;
         cash_paid: number;
         creation_method: 'manual' | 'automatic';
+        edit_url: string;
     } | null;
 };
 
@@ -287,6 +288,11 @@ defineProps<{
 
                 <div v-if="visit.cashout" class="space-y-3 border-t pt-4">
                     <h5 class="text-sm font-medium">Cashout</h5>
+                    <Link
+                        :href="visit.cashout.edit_url"
+                        class="text-sm underline"
+                        >Correct cashout</Link
+                    >
                     <p
                         v-if="visit.cashout.creation_method === 'automatic'"
                         class="text-sm text-muted-foreground"

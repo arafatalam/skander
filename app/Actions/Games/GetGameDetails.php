@@ -86,11 +86,11 @@ class GetGameDetails
                 'type' => $buyIn->type,
                 'amount' => $buyIn->amount,
             ]),
-            'cashout' => $visit->cashout?->only([
+            'cashout' => $visit->cashout === null ? null : $visit->cashout->only([
                 'ending_chips',
                 'cash_paid',
                 'creation_method',
-            ]),
+            ]) + ['edit_url' => route('cashouts.edit', $visit->cashout)],
         ];
     }
 }

@@ -8,8 +8,10 @@ use App\Http\Controllers\GameSettingController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\PlayerController;
 use App\Http\Controllers\PlayerGameController;
+use App\Http\Controllers\RecordCorrectionController;
 use App\Models\BuyIn;
 use App\Models\Cashout;
+use App\Models\CorrectionSubmission;
 use App\Models\GameSession;
 use App\Models\GameSetting;
 use App\Models\Payment;
@@ -20,6 +22,14 @@ Route::inertia('/', 'Welcome')->name('home');
 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::inertia('dashboard', 'Dashboard')->name('dashboard');
+
+    Route::get('record-correction', [RecordCorrectionController::class, 'index'])
+        ->name('record-correction.index')
+        ->can('viewAny', CorrectionSubmission::class);
+
+    Route::post('record-correction', [RecordCorrectionController::class, 'store'])
+        ->name('record-correction.store')
+        ->can('create', CorrectionSubmission::class);
 
     Route::prefix('players')->group(function () {
         Route::get('/', [PlayerController::class, 'index'])

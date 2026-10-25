@@ -10,6 +10,7 @@ import GameSessionController from '@/actions/App/Http/Controllers/GameSessionCon
 import PlayerController from '@/actions/App/Http/Controllers/PlayerController';
 import PaymentController from '@/actions/App/Http/Controllers/PaymentController';
 import GameSettingController from '@/actions/App/Http/Controllers/GameSettingController';
+import RecordCorrectionController from '@/actions/App/Http/Controllers/RecordCorrectionController';
 
 import {
     BookOpen,
@@ -70,6 +71,11 @@ const mainNavItems: NavItem[] = [
         title: 'Game settings',
         href: GameSettingController.editStandalone(),
         icon: Settings,
+    },
+    {
+        title: 'Record Correction',
+        href: RecordCorrectionController.index(),
+        icon: BookOpen,
     },
     {
         title: 'Players',

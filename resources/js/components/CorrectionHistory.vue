@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { useId } from 'vue';
+const headingId = useId();
 type Value = { label: string; value: string };
 export type Revision = {
     id: number;
@@ -18,10 +20,8 @@ const dateTime = (value: string) =>
     }).format(new Date(value));
 </script>
 <template>
-    <section aria-labelledby="corrections-heading" class="space-y-4">
-        <h2 id="corrections-heading" class="text-lg font-semibold">
-            Corrections
-        </h2>
+    <section :aria-labelledby="headingId" class="space-y-4">
+        <h2 :id="headingId" class="text-lg font-semibold">Corrections</h2>
         <p v-if="revisions.length === 0" class="text-sm text-muted-foreground">
             No corrections recorded.
         </p>
